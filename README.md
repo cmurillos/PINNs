@@ -43,22 +43,48 @@ X = torch.rand(100, 4)   # puntos [x, y, z, t]
 G = op.grad_T(X)         # (100, 3) -> (dT/dx, dT/dy, dT/dz)
 ```
 
-### Archivos
+### Estructura del repositorio
 
-| Archivo                        | Contenido                                              |
-|--------------------------------|--------------------------------------------------------|
-| `lateral_cauchy_cylinder.py`   | clase `LateralCauchyCylinder` (la PINN)                |
-| `validate.py`                  | validación con solución manufacturada (§6 de CLAUDE.md)|
-| `CLAUDE.md`                    | especificación completa del proyecto                   |
+| Ruta                          | Contenido                                                       |
+|-------------------------------|-----------------------------------------------------------------|
+| `lateral_cauchy_cylinder.py`  | clase `LateralCauchyCylinder` (la **PINN**)                     |
+| `numerics/`                   | **solver numérico de referencia** (independiente, numpy/scipy)  |
+| `numerics/disk_modes.py`      | funciones propias de Neumann del disco (Bessel)                 |
+| `numerics/heat1d.py`          | solver 1D en `(z,t)` por modo (Crank–Nicolson, forma conserv.)  |
+| `numerics/reference.py`       | solver 3D+t por superposición de modos; extrae datos de Cauchy  |
+| `numerics/manufactured.py`    | soluciones exactas (para validar solver **y** PINN)             |
+| `metrics.py`                  | error relativo, muestreo, error-vs-`z`, puente numpy↔torch       |
+| `examples/`                   | comparaciones PINN ↔ referencia                                 |
+| `CLAUDE.md`                   | especificación completa del proyecto                            |
 
-### Instalación y validación
+### Sistema de validación numérica
+
+La PINN resuelve un problema **inverso mal puesto**. Para comprobar que su `∇T`
+es correcto se incluye un **solver de referencia independiente** (`numerics/`)
+que resuelve el problema *directo* (bien puesto), del que se extraen los datos
+de Cauchy `(g, f)` que alimentan a la PINN. Hay tres validaciones encadenadas:
+
+| Ejemplo                                | Compara                                  | Qué verifica                                   |
+|----------------------------------------|------------------------------------------|------------------------------------------------|
+| `examples/ex1_manufactured.py`         | PINN ↔ solución exacta (sin frec. espac.)| sanity check de la maquinaria (§6)             |
+| `examples/ex2_bessel.py`               | PINN ↔ modo de Bessel; solver ↔ exacta   | estrés con frecuencia espacial en `(x,y)`      |
+| `examples/ex3_solver_heterogeneous.py` | PINN ↔ solver numérico, `k(z)` variable  | medio heterogéneo, **sin** solución analítica  |
+
+El solver de referencia es válido para medios `ρc, k` dependientes solo de `z`
+(perfiles por capas), exactamente la heterogeneidad prevista en `CLAUDE.md` §8.
+
+### Instalación y ejecución
 
 ```bash
 pip install -r requirements.txt
-python validate.py        # imprime el error relativo de grad_T
+python -m examples.ex1_manufactured     # sanity check
+python -m examples.ex2_bessel           # test con frecuencia espacial
+python -m examples.ex3_solver_heterogeneous   # medio k(z) heterogéneo
 ```
 
-Con los defaults (`adam_iters=15000`, `lbfgs_iters=3000`) el error relativo de
-`grad_T` en el caso manufacturado es pequeño; con una corrida reducida
-(`python -c "import validate; validate.main(adam_iters=400, lbfgs_iters=200)"`)
-ya baja del orden de `1e-2`.
+Cada ejemplo acepta un régimen reducido para correr rápido, p. ej.:
+
+```python
+from examples.ex2_bessel import main
+main(adam_iters=600, lbfgs_iters=200)   # defaults completos: 15000 / 3000
+```
