@@ -69,9 +69,23 @@ de Cauchy `(g, f)` que alimentan a la PINN. Hay tres validaciones encadenadas:
 | `examples/ex1_manufactured.py`         | PINN ↔ solución exacta (sin frec. espac.)| sanity check de la maquinaria (§6)             |
 | `examples/ex2_bessel.py`               | PINN ↔ modo de Bessel; solver ↔ exacta   | estrés con frecuencia espacial en `(x,y)`      |
 | `examples/ex3_solver_heterogeneous.py` | PINN ↔ solver numérico, `k(z)` variable  | medio heterogéneo, **sin** solución analítica  |
+| `examples/ex4_noise.py`                | PINN con datos `(g,f)` ruidosos          | robustez al ruido (la inversión lo amplifica)  |
+| `examples/ex5_frequency_sweep.py`      | PINN sobre modos de frecuencia creciente | mapa de degradación vs `exp(L·γ)`              |
 
 El solver de referencia es válido para medios `ρc, k` dependientes solo de `z`
 (perfiles por capas), exactamente la heterogeneidad prevista en `CLAUDE.md` §8.
+
+### Tests y diagnóstico
+
+```bash
+pip install -r requirements-dev.txt
+pytest tests/ -q          # suite de tests (modos, solver, PINN, métricas)
+```
+
+`diagnostics.py` ofrece gráficas (`plot_history`, `plot_error_vs_z`) y el
+diagnóstico **`L/δ`** (`ld_ratio`, con `δ=√(2α/ω)`) que predice *antes* de
+entrenar si el régimen es recuperable (`L/δ ≲ 1`). La integración continua
+(`.github/workflows/ci.yml`) corre la suite en cada push y pull request.
 
 ### Instalación y ejecución
 
