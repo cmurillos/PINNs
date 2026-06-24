@@ -13,6 +13,10 @@ cilindro con medio heterogéneo, y que tras entrenar expone el campo
 **gradiente espacial** `∇T` como un objeto invocable sobre el cilindro
 espacio-temporal.
 
+**Alcance:** proyecto determinista (coeficientes dados, no aleatorios) de métodos
+y verificación. No es un trabajo de aplicación geofísica ni de cuantificación de
+incertidumbre.
+
 ---
 
 ## 1. Problema matemático (enunciado completo)
@@ -37,7 +41,9 @@ Frontera de `Ω`, en tres piezas disjuntas:
 Funciones dadas `ρ, c, k : Ω → ℝ`, con:
 
 - `ρ·c ∈ L∞(Ω)`, `ρ·c ≥ γ₀ > 0`.
-- `k` **suave** (al menos C¹; en la práctica serán **polinomios**), `k ≥ k₀ > 0`.
+- `k` **Lipschitz** (`C^{0,1}`) es el umbral teórico para la continuación única;
+  en la práctica se usan **polinomios** (`C^∞`), que además dan el doble autodiff
+  limpio de §4.3. `k ≥ k₀ > 0`.
 
 La suavidad de `k` **no es opcional**: ver §4.3 (forma divergencia).
 
@@ -110,9 +116,9 @@ Define un operador `Λ : g ↦ ∇T` (con `f` ligado o como segundo dato).
 
 La **instancia es el operador `Λ` para un medio fijo**. La geometría `(R, L, Tmax)`
 y el medio `(ρ, c, k)` van en el constructor porque *definen* el operador. El dato
-`(g, f)` va en `fit` porque es el *input* del operador. Esta separación deja listo
-el futuro con campos aleatorios `G`: cada realización será otra instancia con
-otros `ρ, c, k`, sin tocar la lógica.
+`(g, f)` va en `fit` porque es el *input* del operador. Esta es la separación
+natural del operador: un medio distinto (otros `ρ, c, k`) es otra instancia, sin
+tocar la lógica de entrenamiento.
 
 ### 2.2 Firma
 
@@ -198,7 +204,8 @@ que NO son negociables:
   quien llama.
 - **Normalización interna** de entradas a `[-1,1]` por `(R, L, Tmax)`: crítica
   para el condicionamiento del entrenamiento (no es cosmética).
-- **Profundidad viable** controlada por `L/δ`, con `δ = √(2α/ω)`. Régimen sano
+- **Distancia de continuación viable**, controlada por `L/δ` con `δ = √(2α/ω)`
+  (longitud de penetración del armónico temporal dominante). Régimen sano
   `L/δ ≲ 1`. Por eso se guarda `alpha` para diagnóstico.
 
 ---
@@ -356,19 +363,26 @@ G = op.grad_T(X)                # (100, 3)
 
 ---
 
-## 8. FUERA DE ALCANCE en esta versión (NO implementar todavía)
+## 8. Alcance de esta versión
 
-Confirmado explícitamente que NADA de esto entra ahora:
-
-- Campos aleatorios `G` / ensemble Monte Carlo / cuantificación de incertidumbre.
-- Cierre Robin `f = h(g - T_atm)` dentro de `fit` (irá como helper externo, luego).
-- Pesos adaptativos (self-adaptive / annealing por norma de gradientes).
-- Dominio `D` general (por ahora solo disco; pero aislar el muestreo).
+**Implementado (dentro de alcance):**
+- Medio heterogéneo **determinista** `ρ, c, k`, incluido `k(z)` por capas (la
+  forma divergencia lo soporta sin cambios de código: solo cambia el callable `k`).
+- Solver de referencia modal independiente y soluciones manufacturadas.
+- Experimentos de estrés: frecuencia espacial (Bessel) y ruido aditivo.
 - `save` / `load` del modelo entrenado.
+
+**Fuera de alcance (NO implementar):**
+- Cierre Robin `f = h(g - T_atm)` dentro de `fit` (irá como helper externo, luego).
+- Pesos adaptativos (self-adaptive / annealing). `ex6` solo MIDE la sensibilidad
+  al balance; no lo auto-ajusta.
+- Dominio `D` general (por ahora solo disco; el muestreo queda aislado para
+  facilitar el cambio futuro).
 - Helper de validación como método de la clase (por ahora externo / `__main__`).
-- Experimento de estrés (`g` con frecuencia espacial + ruido).
-- Perfil `k(z)` por capas heterogéneo (vendrá después; la forma divergencia ya
-  lo soporta sin cambios de código, solo cambia el callable `k`).
+
+> **Carácter del proyecto.** Es **determinista**: no hay campos aleatorios `G`,
+> ensemble Monte Carlo ni cuantificación de incertidumbre. La heterogeneidad es de
+> coeficientes dados, no estocástica.
 
 ---
 

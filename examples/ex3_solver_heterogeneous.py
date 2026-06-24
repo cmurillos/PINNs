@@ -20,7 +20,7 @@ from lateralcauchy.metrics import (
 
 R = L = Tmax = 1.0
 
-# medio: rho c = 1, k(z) suave (C1, polinomio) que varia ~2x con la profundidad
+# medio: rho c = 1, k(z) suave (C1, polinomio) que varia ~2x a lo largo de z
 rhoc_np = lambda z: np.ones_like(z)
 k_np = lambda z: 1.0 + 0.8 * z ** 2           # k(0)=1, k(L)=1.8
 
@@ -57,7 +57,7 @@ def main(**opts):
     pred = op.grad_T(torch.as_tensor(X, device=op.device))
     print(f"[ex3] (referencia) error global en Omega = {rel_l2(pred, ref.grad_T(X)):.3e}")
     zc, ez = error_vs_z(pred, ref.grad_T(X), X, nbins=6)
-    print("[ex3] error grad_T por profundidad z:")
+    print("[ex3] error grad_T por z (distancia a la tapa):")
     for zz, ee in zip(zc, ez):
         print(f"        z={zz:.2f}  err={ee:.3e}")
     tc, et = error_vs_t(pred, ref.grad_T(X), X, nbins=6)
