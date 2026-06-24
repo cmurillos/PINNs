@@ -8,14 +8,13 @@ cilindro. Ejecutar:  python -m examples.ex3_solver_heterogeneous
 """
 
 import os, sys
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "src"))
 
 import numpy as np
 import torch
 
-from lateral_cauchy_cylinder import LateralCauchyCylinder
-from numerics import ReferenceSolution
-from metrics import sample_cylinder, rel_l2, error_vs_z, torchify
+from lateralcauchy import LateralCauchyCylinder, ReferenceSolution
+from lateralcauchy.metrics import sample_cylinder, rel_l2, error_vs_z, torchify
 
 R = L = Tmax = 1.0
 

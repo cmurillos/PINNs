@@ -2,7 +2,7 @@
 
 import numpy as np
 
-from numerics.heat1d import Heat1D
+from lateralcauchy.numerics.heat1d import Heat1D
 
 
 def test_vs_analytic():

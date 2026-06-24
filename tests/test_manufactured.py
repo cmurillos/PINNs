@@ -3,7 +3,7 @@
 import numpy as np
 import pytest
 
-from numerics import ManufacturedZ, ManufacturedBessel
+from lateralcauchy.numerics import ManufacturedZ, ManufacturedBessel
 
 RHOC = K = 1.0
 

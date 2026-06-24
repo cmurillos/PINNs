@@ -2,8 +2,8 @@
 
 import numpy as np
 
-from numerics import ReferenceSolution, ManufacturedBessel
-from metrics import sample_cylinder, rel_l2
+from lateralcauchy.numerics import ReferenceSolution, ManufacturedBessel
+from lateralcauchy.metrics import sample_cylinder, rel_l2
 
 
 def _build():
