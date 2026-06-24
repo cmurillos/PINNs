@@ -14,7 +14,7 @@ import numpy as np
 import torch
 
 from lateralcauchy import LateralCauchyCylinder, ManufacturedBessel
-from lateralcauchy.metrics import sample_cylinder, rel_l2, torchify
+from lateralcauchy.metrics import sample_disk_slice, rel_l2, torchify
 
 R = L = Tmax = 1.0
 RHOC = K = 1.0
@@ -24,17 +24,17 @@ def main(modes=((1, 1), (2, 1), (3, 1), (4, 1)), **opts):
     rho = lambda X: torch.ones_like(X[:, :1])
     c = lambda X: RHOC * torch.ones_like(X[:, :1])
     k = lambda X: K * torch.ones_like(X[:, :1])
-    Xc = sample_cylinder(R, L, Tmax, 3000, seed=4)
+    Xbase = sample_disk_slice(R, Tmax, 0.0, 3000, seed=4)   # metrica en la base z=0
 
-    print("[ex5] degradacion vs frecuencia espacial:")
-    print("        modo    mu      gamma   exp(L*gamma)   grad_T rel err")
+    print("[ex5] degradacion vs frecuencia espacial (error de grad_T en la BASE z=0):")
+    print("        modo    mu      gamma   exp(L*gamma)   err(z=0)")
     out = {}
     for (m, n) in modes:
         exact = ManufacturedBessel(m=m, n=n, R=R, lam=0.5, rhoc=RHOC, k=K, A=1.0, B=0.3)
         op = LateralCauchyCylinder(R, L, Tmax, rho, c, k)
         op.fit(torchify(exact.g, op.device), torchify(exact.f, op.device), **opts)
-        pred = op.grad_T(torch.as_tensor(Xc, device=op.device))
-        err = rel_l2(pred, exact.grad_T(Xc))
+        pred = op.grad_T(torch.as_tensor(Xbase, device=op.device))
+        err = rel_l2(pred, exact.grad_T(Xbase))
         amp = np.exp(L * exact.gamma)
         out[(m, n)] = err
         print(f"        ({m},{n})  {exact.mode.mu:6.2f}  {exact.gamma:5.2f}   "

@@ -121,6 +121,7 @@ class LateralCauchyCylinder:
             "weights": (1.0, 10.0, 10.0, 1.0),  # (pde, g, f, lat)
             "adam_iters": 15000, "lbfgs_iters": 3000, "lr": 1e-3,
             "n_int": 8000, "n_top": 3000, "n_lat": 2000,
+            "resample_every": 500,   # resamplea colocacion cada K iters de Adam (0=off)
         }
         o.update(opts)
         self._build_net()  # re-fit reinicia (sin warm-start)
@@ -141,25 +142,48 @@ class LateralCauchyCylinder:
             Ll = (dn ** 2).mean()                                 # Neumann lateral
             return Lp, Lg, Lf, Ll
 
-        def closure():
-            opt.zero_grad()
+        def record(loss, Lp, Lg, Lf, Ll):
+            for key, v in zip(("total", "pde", "g", "f", "lat"),
+                              (loss, Lp, Lg, Lf, Ll)):
+                hist[key].append(float(v))
+
+        # --- Adam: paso explicito (no usa closure); UN registro por iteracion ---
+        adam = torch.optim.Adam(self.net.parameters(), lr=o["lr"])
+        for it in range(o["adam_iters"]):
+            adam.zero_grad()
             Lp, Lg, Lf, Ll = terms()
             loss = lp * Lp + lg * Lg + lf * Lf + ll * Ll
             loss.backward()
-            for key, val in zip(hist, (loss, Lp, Lg, Lf, Ll)):
-                hist[key].append(val.item())
+            adam.step()
+            record(loss.item(), Lp.item(), Lg.item(), Lf.item(), Ll.item())
+            # resamplear refresca el residuo (NUNCA durante L-BFGS: rompe su Hessiano)
+            if o["resample_every"] and (it + 1) % o["resample_every"] == 0:
+                Xi, Xt, Xl = self._sample(o["n_int"], o["n_top"], o["n_lat"])
+
+        # --- L-BFGS: colocacion FIJA; closure solo aqui; UN registro por iteracion ---
+        last = {}
+
+        def closure():
+            lbfgs.zero_grad()
+            Lp, Lg, Lf, Ll = terms()
+            loss = lp * Lp + lg * Lg + lf * Lf + ll * Ll
+            loss.backward()
+            last["vals"] = (loss.item(), Lp.item(), Lg.item(), Lf.item(), Ll.item())
             return loss
 
-        opt = torch.optim.Adam(self.net.parameters(), lr=o["lr"])
-        for _ in range(o["adam_iters"]):
-            opt.step(closure)
-
-        opt = torch.optim.LBFGS(
-            self.net.parameters(), max_iter=o["lbfgs_iters"],
+        lbfgs = torch.optim.LBFGS(
+            self.net.parameters(), max_iter=1,   # 1 iter por step -> registro limpio
             line_search_fn="strong_wolfe", tolerance_grad=1e-9,
             tolerance_change=1e-12, history_size=50,
         )
-        opt.step(closure)
+        prev = float("inf")
+        for _ in range(o["lbfgs_iters"]):
+            lbfgs.step(closure)
+            record(*last["vals"])
+            cur = last["vals"][0]
+            if abs(prev - cur) < 1e-12:          # convergio: corta (lo hacia max_iter)
+                break
+            prev = cur
 
         self._install()
         return hist

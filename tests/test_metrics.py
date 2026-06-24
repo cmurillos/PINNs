@@ -3,7 +3,10 @@
 import numpy as np
 import torch
 
-from lateralcauchy.metrics import rel_l2, sample_cylinder, error_vs_z, torchify, to_numpy
+from lateralcauchy.metrics import (
+    rel_l2, sample_cylinder, sample_disk_slice, error_vs_z, error_vs_t,
+    torchify, to_numpy,
+)
 
 
 def test_rel_l2_zero_and_value():
@@ -35,10 +38,27 @@ def test_torchify_returns_torch():
     assert torch.allclose(out, 2 * torch.ones(4, 1))
 
 
-def test_error_vs_z_shapes():
+def test_error_vs_z_and_t_shapes():
     X = sample_cylinder(1, 1, 1, 500, seed=2)
-    pred = np.zeros((500, 3))
-    true = np.ones((500, 3))
-    zc, err = error_vs_z(pred, true, X, nbins=5)
-    assert len(zc) == len(err) <= 5
-    assert np.allclose(err, 1.0)                  # pred=0 -> error relativo 1
+    pred, true = np.zeros((500, 3)), np.ones((500, 3))
+    for fn in (error_vs_z, error_vs_t):
+        c, err = fn(pred, true, X, nbins=5)
+        assert len(c) == len(err) <= 5
+        assert np.allclose(err, 1.0)              # pred=0 -> error relativo 1
+
+
+def test_sample_disk_slice_fixed_z():
+    X = sample_disk_slice(2.0, 1.5, 0.0, 500, seed=1)
+    assert np.allclose(X[:, 2], 0.0)
+    assert np.hypot(X[:, 0], X[:, 1]).max() <= 2.0 + 1e-9
+
+
+def test_default_dtype_is_float64():
+    assert torch.get_default_dtype() == torch.float64
+
+
+def test_bridge_preserves_float64():
+    g = torchify(lambda X: X[:, :1], device="cpu")
+    out = g(torch.ones(3, 4, dtype=torch.float64))
+    assert out.dtype == torch.float64                       # sin cast a float32
+    assert to_numpy(torch.ones(2, dtype=torch.float64)).dtype == np.float64
