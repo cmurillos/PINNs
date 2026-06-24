@@ -14,7 +14,9 @@ import numpy as np
 import torch
 
 from lateralcauchy import LateralCauchyCylinder, ReferenceSolution
-from lateralcauchy.metrics import sample_cylinder, rel_l2, error_vs_z, torchify
+from lateralcauchy.metrics import (
+    sample_cylinder, sample_disk_slice, rel_l2, error_vs_z, error_vs_t, torchify,
+)
 
 R = L = Tmax = 1.0
 
@@ -44,15 +46,25 @@ def main(**opts):
     op = LateralCauchyCylinder(R, L, Tmax, rho, c, k)
     op.fit(torchify(ref.g, op.device), torchify(ref.f, op.device), **opts)
 
+    # METRICA PRINCIPAL: error en la base z=0 (lo que la PINN nunca ve)
+    Xbase = sample_disk_slice(R, Tmax, 0.0, 3000, seed=30)
+    base_err = rel_l2(op.grad_T(torch.as_tensor(Xbase, device=op.device)),
+                      ref.grad_T(Xbase))
+    print(f"[ex3] *** grad_T en la BASE z=0 (k(z) heterogeneo, {len(modes)} modos): "
+          f"rel err = {base_err:.3e} ***")
+
     X = sample_cylinder(R, L, Tmax, 3000, seed=3)
     pred = op.grad_T(torch.as_tensor(X, device=op.device))
-    err = rel_l2(pred, ref.grad_T(X))
-    print(f"[ex3] PINN vs solver (k(z) heterogeneo): grad_T rel err = {err:.3e}")
+    print(f"[ex3] (referencia) error global en Omega = {rel_l2(pred, ref.grad_T(X)):.3e}")
     zc, ez = error_vs_z(pred, ref.grad_T(X), X, nbins=6)
     print("[ex3] error grad_T por profundidad z:")
     for zz, ee in zip(zc, ez):
         print(f"        z={zz:.2f}  err={ee:.3e}")
-    return err
+    tc, et = error_vs_t(pred, ref.grad_T(X), X, nbins=6)
+    print("[ex3] error grad_T por tiempo t (control, deberia ser ~plano):")
+    for tt, ee in zip(tc, et):
+        print(f"        t={tt:.2f}  err={ee:.3e}")
+    return base_err
 
 
 if __name__ == "__main__":
