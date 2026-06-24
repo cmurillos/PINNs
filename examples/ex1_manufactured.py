@@ -6,13 +6,12 @@ grad_T correctamente. Ejecutar:  python -m examples.ex1_manufactured
 """
 
 import os, sys
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "src"))
 
 import torch
 
-from lateral_cauchy_cylinder import LateralCauchyCylinder
-from numerics import ManufacturedZ
-from metrics import sample_cylinder, rel_l2, torchify
+from lateralcauchy import LateralCauchyCylinder, ManufacturedZ
+from lateralcauchy.metrics import sample_cylinder, rel_l2, torchify
 
 R = L = Tmax = 1.0
 RHOC, K = 1.0, 1.0

@@ -5,7 +5,7 @@ import warnings
 import pytest
 import torch
 
-from lateral_cauchy_cylinder import LateralCauchyCylinder
+from lateralcauchy import LateralCauchyCylinder
 
 ONE = lambda X: torch.ones_like(X[:, :1])
 ZERO = lambda X: torch.zeros_like(X[:, :1])

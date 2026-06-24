@@ -1,11 +1,7 @@
-# PINNs
+# LateralCauchyCylinder
 
-Physics-Informed Neural Networks.
-
-## `LateralCauchyCylinder`
-
-PINN (PyTorch) que resuelve el **problema de Cauchy lateral** para la ecuación de
-calor en un cilindro con medio heterogéneo:
+Physics-Informed Neural Networks (PINNs) para el **problema de Cauchy lateral**
+de la ecuación de calor en un cilindro con medio heterogéneo:
 
 ```
 rho(x) c(x) dT/dt = div( k(x) grad T )      en  Q = D x (0,L) x (0,Tmax]
@@ -13,18 +9,42 @@ rho(x) c(x) dT/dt = div( k(x) grad T )      en  Q = D x (0,L) x (0,Tmax]
 
 con dato de Cauchy `(g, f)` en la tapa `z=L` (ambos como pérdida blanda), Neumann
 homogéneo en la pared lateral, base `z=0` libre y sin condición inicial. Tras
-entrenar expone el campo gradiente espacial `grad_T` como objeto invocable sobre
-todo el cilindro espacio-temporal.
+entrenar, la PINN expone el campo gradiente espacial `grad_T` como objeto
+invocable sobre todo el cilindro espacio-temporal.
 
 El problema es **mal puesto exponencialmente**; eso gobierna las decisiones de
 diseño (`tanh`, doble precisión, sin Fourier features, normalización interna).
 Ver `CLAUDE.md` para el enunciado matemático y de software completo.
 
-### Uso
+## Instalación
+
+```bash
+pip install -e ".[dev]"     # paquete + dependencias de desarrollo (pytest)
+```
+
+## Estructura del repositorio
+
+```
+src/lateralcauchy/          paquete instalable
+  pinn.py                   clase LateralCauchyCylinder (la PINN, PyTorch)
+  numerics/                 solver numérico de referencia (numpy/scipy)
+    disk_modes.py           funciones propias de Neumann del disco (Bessel)
+    heat1d.py               solver 1D en (z,t) por modo (Crank-Nicolson)
+    reference.py            solver 3D+t por superposición; extrae datos de Cauchy
+    manufactured.py         soluciones exactas (validan solver y PINN)
+  metrics.py                error relativo, muestreo, error-vs-z, puente numpy<->torch
+  diagnostics.py            gráficas y diagnóstico L/delta (matplotlib)
+examples/                   comparaciones PINN <-> referencia (ex1..ex5)
+tests/                      suite pytest
+pyproject.toml              metadatos y dependencias del paquete
+CLAUDE.md                   especificación completa del proyecto
+```
+
+## Uso
 
 ```python
 import math, torch
-from lateral_cauchy_cylinder import LateralCauchyCylinder
+from lateralcauchy import LateralCauchyCylinder
 
 RHOC, K = 1.0, 1.0
 rho = lambda X: torch.ones_like(X[:, :1])
@@ -43,26 +63,12 @@ X = torch.rand(100, 4)   # puntos [x, y, z, t]
 G = op.grad_T(X)         # (100, 3) -> (dT/dx, dT/dy, dT/dz)
 ```
 
-### Estructura del repositorio
-
-| Ruta                          | Contenido                                                       |
-|-------------------------------|-----------------------------------------------------------------|
-| `lateral_cauchy_cylinder.py`  | clase `LateralCauchyCylinder` (la **PINN**)                     |
-| `numerics/`                   | **solver numérico de referencia** (independiente, numpy/scipy)  |
-| `numerics/disk_modes.py`      | funciones propias de Neumann del disco (Bessel)                 |
-| `numerics/heat1d.py`          | solver 1D en `(z,t)` por modo (Crank–Nicolson, forma conserv.)  |
-| `numerics/reference.py`       | solver 3D+t por superposición de modos; extrae datos de Cauchy  |
-| `numerics/manufactured.py`    | soluciones exactas (para validar solver **y** PINN)             |
-| `metrics.py`                  | error relativo, muestreo, error-vs-`z`, puente numpy↔torch       |
-| `examples/`                   | comparaciones PINN ↔ referencia                                 |
-| `CLAUDE.md`                   | especificación completa del proyecto                            |
-
-### Sistema de validación numérica
+## Sistema de validación numérica
 
 La PINN resuelve un problema **inverso mal puesto**. Para comprobar que su `∇T`
-es correcto se incluye un **solver de referencia independiente** (`numerics/`)
-que resuelve el problema *directo* (bien puesto), del que se extraen los datos
-de Cauchy `(g, f)` que alimentan a la PINN. Hay tres validaciones encadenadas:
+es correcto se incluye un **solver de referencia independiente**
+(`lateralcauchy.numerics`) que resuelve el problema *directo* (bien puesto), del
+que se extraen los datos de Cauchy `(g, f)` que alimentan a la PINN.
 
 | Ejemplo                                | Compara                                  | Qué verifica                                   |
 |----------------------------------------|------------------------------------------|------------------------------------------------|
@@ -72,33 +78,29 @@ de Cauchy `(g, f)` que alimentan a la PINN. Hay tres validaciones encadenadas:
 | `examples/ex4_noise.py`                | PINN con datos `(g,f)` ruidosos          | robustez al ruido (la inversión lo amplifica)  |
 | `examples/ex5_frequency_sweep.py`      | PINN sobre modos de frecuencia creciente | mapa de degradación vs `exp(L·γ)`              |
 
-El solver de referencia es válido para medios `ρc, k` dependientes solo de `z`
-(perfiles por capas), exactamente la heterogeneidad prevista en `CLAUDE.md` §8.
-
-### Tests y diagnóstico
-
 ```bash
-pip install -r requirements-dev.txt
-pytest tests/ -q          # suite de tests (modos, solver, PINN, métricas)
+python -m examples.ex1_manufactured            # sanity check
+python -m examples.ex2_bessel                  # frecuencia espacial + error-vs-z
+python -m examples.ex3_solver_heterogeneous    # medio k(z) heterogéneo
 ```
 
-`diagnostics.py` ofrece gráficas (`plot_history`, `plot_error_vs_z`) y el
-diagnóstico **`L/δ`** (`ld_ratio`, con `δ=√(2α/ω)`) que predice *antes* de
-entrenar si el régimen es recuperable (`L/δ ≲ 1`). La integración continua
-(`.github/workflows/ci.yml`) corre la suite en cada push y pull request.
-
-### Instalación y ejecución
-
-```bash
-pip install -r requirements.txt
-python -m examples.ex1_manufactured     # sanity check
-python -m examples.ex2_bessel           # test con frecuencia espacial
-python -m examples.ex3_solver_heterogeneous   # medio k(z) heterogéneo
-```
-
-Cada ejemplo acepta un régimen reducido para correr rápido, p. ej.:
+Cada ejemplo acepta un régimen reducido para correr rápido:
 
 ```python
 from examples.ex2_bessel import main
-main(adam_iters=600, lbfgs_iters=200)   # defaults completos: 15000 / 3000
+main(adam_iters=600, lbfgs_iters=200)          # defaults completos: 15000 / 3000
 ```
+
+El solver de referencia es válido para medios `ρc, k` dependientes solo de `z`
+(perfiles por capas), exactamente la heterogeneidad prevista en `CLAUDE.md` §8.
+
+## Tests y diagnóstico
+
+```bash
+pytest -q          # suite de tests (modos, solver, PINN, métricas)
+```
+
+`lateralcauchy.diagnostics` ofrece gráficas (`plot_history`, `plot_error_vs_z`) y
+el diagnóstico **`L/δ`** (`ld_ratio`, con `δ=√(2α/ω)`) que predice *antes* de
+entrenar si el régimen es recuperable (`L/δ ≲ 1`). La integración continua
+(`.github/workflows/ci.yml`) corre la suite en cada push y pull request.

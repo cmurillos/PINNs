@@ -3,7 +3,7 @@
 import numpy as np
 import pytest
 
-from numerics.disk_modes import DiskMode
+from lateralcauchy.numerics.disk_modes import DiskMode
 
 MODES = [(0, 1, "cos"), (1, 1, "cos"), (2, 2, "sin"), (3, 1, "cos")]
 
