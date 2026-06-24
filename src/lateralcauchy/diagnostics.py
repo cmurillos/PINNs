@@ -4,8 +4,8 @@
   de entrenar, si el regimen es recuperable. Regimen sano L/delta <~ 1; valores
   grandes => la continuacion hacia la base amplifica demasiado (CLAUDE.md §3).
 - plot_history: curvas de perdida por termino (lo que devuelve fit).
-- plot_error_vs_z: error relativo de grad_T por profundidad (firma del mal
-  condicionamiento: crece al alejarse de la tapa z=L).
+- plot_error_vs_z: error relativo de grad_T por coordenada z / distancia a la tapa
+  (firma del mal condicionamiento: crece al alejarse de la tapa z=L).
 - plot_error_vs_t: el mismo error por tiempo (control: deberia salir ~plano).
 
 Usa el backend 'Agg' (sin ventana): guarda a archivo o devuelve la figura.
@@ -19,12 +19,12 @@ import matplotlib.pyplot as plt
 
 
 def skin_depth(alpha, omega):
-    """Profundidad de penetracion delta = sqrt(2 alpha / omega)."""
+    """Longitud de penetracion delta = sqrt(2 alpha / omega)."""
     return math.sqrt(2.0 * alpha / omega)
 
 
 def ld_ratio(alpha, omega, L):
-    """L/delta: profundidad relativa. <~1 recuperable; >>1 mal condicionado."""
+    """L/delta: distancia de continuacion en unidades de delta. <~1 recuperable; >>1 mal condicionado."""
     return L / skin_depth(alpha, omega)
 
 
@@ -53,7 +53,7 @@ def _plot_profile(coord, err, xlabel, title, path):
 
 def plot_error_vs_z(zc, err, path=None):
     return _plot_profile(zc, err, "z (tapa z=L a la derecha)",
-                         "Error por profundidad (mal condicionamiento)", path)
+                         "Error por distancia a la tapa (mal condicionamiento)", path)
 
 
 def plot_error_vs_t(tc, err, path=None):

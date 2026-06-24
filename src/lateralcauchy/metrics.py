@@ -2,8 +2,8 @@
 
 La PINN trabaja en torch; el solver de referencia en numpy. Aqui viven las
 utilidades que cruzan ambos mundos: error relativo, muestreo del cilindro,
-error en funcion de la profundidad z (clave en un problema mal puesto: el error
-crece al alejarse de la tapa) y `torchify` para usar callables numpy como datos
+error en funcion de la coordenada z / distancia a la tapa (clave en un problema
+mal puesto: el error crece al alejarse de la tapa) y `torchify` para usar callables numpy como datos
 de Cauchy de la PINN.
 """
 
@@ -54,7 +54,7 @@ def _error_vs(grad_pred, grad_true, X, col, nbins):
 
 
 def error_vs_z(grad_pred, grad_true, X, nbins=8):
-    """Error de grad_T por profundidad z (crece al alejarse de la tapa z=L)."""
+    """Error de grad_T por coordenada z (crece al alejarse de la tapa z=L)."""
     return _error_vs(grad_pred, grad_true, X, 2, nbins)
 
 

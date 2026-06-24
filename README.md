@@ -19,6 +19,12 @@ El problema es **mal puesto exponencialmente**; eso gobierna las decisiones de
 diseño (`tanh`, doble precisión, sin Fourier features, normalización interna).
 Ver `CLAUDE.md` para el enunciado matemático y de software completo.
 
+> **Alcance.** Estudio **determinista** de métodos y verificación: el operador de
+> continuación lateral parabólico realizado como software y verificado contra un
+> solver de referencia independiente. Sin datos de campo, sin componente
+> estocástica. El número `L/δ` se reporta como *distancia de continuación*
+> recuperable, no como profundidad física.
+
 ## Instalación
 
 ```bash
@@ -37,7 +43,7 @@ src/lateralcauchy/          paquete instalable
     manufactured.py         soluciones exactas (validan solver y PINN)
   metrics.py                error relativo, muestreo, error-vs-z, puente numpy<->torch
   diagnostics.py            gráficas y diagnóstico L/delta (matplotlib)
-examples/                   comparaciones PINN <-> referencia (ex1..ex5)
+examples/                   comparaciones PINN <-> referencia (ex1..ex6)
 tests/                      suite pytest
 pyproject.toml              metadatos y dependencias del paquete
 CLAUDE.md                   especificación completa del proyecto
@@ -96,7 +102,8 @@ main(adam_iters=600, lbfgs_iters=200)          # defaults completos: 15000 / 300
 ```
 
 El solver de referencia es válido para medios `ρc, k` dependientes solo de `z`
-(perfiles por capas), exactamente la heterogeneidad prevista en `CLAUDE.md` §8.
+(perfiles por capas), exactamente la heterogeneidad del medio descrita en
+`CLAUDE.md` §1.2.
 
 ### Notas metodológicas (importantes para interpretar los resultados)
 

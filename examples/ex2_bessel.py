@@ -61,7 +61,7 @@ def main(m=2, n=1, **opts):
     pred = op.grad_T(torch.as_tensor(Xc, device=op.device))
     print(f"[ex2] (referencia) error global en Omega = {rel_l2(pred, exact.grad_T(Xc)):.3e}")
     zc, ez = error_vs_z(pred, exact.grad_T(Xc), Xc, nbins=6)
-    print("[ex2] error grad_T por profundidad z (tapa z=L a la derecha):")
+    print("[ex2] error grad_T por z (distancia a la tapa; tapa z=L a la derecha):")
     for zz, ee in zip(zc, ez):
         print(f"        z={zz:.2f}  err={ee:.3e}")
     tc, et = error_vs_t(pred, exact.grad_T(Xc), Xc, nbins=6)
