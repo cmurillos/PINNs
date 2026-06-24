@@ -224,3 +224,24 @@ class LateralCauchyCylinder:
             return fl if create_graph else fl.detach()
 
         self.T, self.grad_T, self.flux = T, grad_T, flux
+
+    # ---------------------------------------------------- guardar / cargar
+    def save(self, path):
+        """Guarda pesos + geometria + net_config. El medio (rho, c, k) NO se
+        serializa (son callables): hay que volver a pasarlo en load."""
+        torch.save({
+            "state_dict": self.net.state_dict(),
+            "geometry": (self.R, self.L, self.Tmax),
+            "net_config": self.cfg,
+        }, path)
+
+    @classmethod
+    def load(cls, path, rho, c, k, map_location=None):
+        """Reconstruye un operador entrenado. Requiere el MISMO medio (rho, c, k)
+        que lo definio, porque define el operador y no se puede serializar."""
+        ckpt = torch.load(path, map_location=map_location, weights_only=False)
+        R, L, Tmax = ckpt["geometry"]
+        op = cls(R, L, Tmax, rho, c, k, net_config=ckpt["net_config"])
+        op.net.load_state_dict(ckpt["state_dict"])
+        op._install()      # reinstala grad_T / T / flux (modelo ya entrenado)
+        return op
