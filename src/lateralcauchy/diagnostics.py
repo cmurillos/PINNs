@@ -6,6 +6,7 @@
 - plot_history: curvas de perdida por termino (lo que devuelve fit).
 - plot_error_vs_z: error relativo de grad_T por profundidad (firma del mal
   condicionamiento: crece al alejarse de la tapa z=L).
+- plot_error_vs_t: el mismo error por tiempo (control: deberia salir ~plano).
 
 Usa el backend 'Agg' (sin ventana): guarda a archivo o devuelve la figura.
 """
@@ -39,13 +40,22 @@ def plot_history(history, path=None):
     return fig
 
 
-def plot_error_vs_z(zc, err, path=None):
+def _plot_profile(coord, err, xlabel, title, path):
     fig, ax = plt.subplots(figsize=(6, 4))
-    ax.semilogy(zc, err, "o-")
-    ax.set_xlabel("z (tapa z=L a la derecha)")
-    ax.set_ylabel("error relativo de grad_T")
-    ax.set_title("Error por profundidad (mal condicionamiento)")
+    ax.semilogy(coord, err, "o-")
+    ax.set_xlabel(xlabel); ax.set_ylabel("error relativo de grad_T")
+    ax.set_title(title)
     fig.tight_layout()
     if path:
         fig.savefig(path, dpi=120)
     return fig
+
+
+def plot_error_vs_z(zc, err, path=None):
+    return _plot_profile(zc, err, "z (tapa z=L a la derecha)",
+                         "Error por profundidad (mal condicionamiento)", path)
+
+
+def plot_error_vs_t(tc, err, path=None):
+    return _plot_profile(tc, err, "t",
+                         "Error por tiempo (control: deberia ser ~plano)", path)

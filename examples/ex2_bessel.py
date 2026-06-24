@@ -2,11 +2,17 @@
 
 T* = amp * phi_{m,n}(x,y) * (A cosh(gamma z) + B sinh(gamma z)) * exp(-lam t).
 Ahora SI varia en (x,y), asi que estresa la inversion mal puesta (CLAUDE.md §6,
-advertencia). Se reporta el error global de grad_T y su perfil en z: deberia
-crecer al alejarse de la tapa z=L (la base z=0 es lo mas dificil de recuperar).
+advertencia).
 
-Tambien comprueba que el solver numerico reproduce la solucion analitica.
-Ejecutar:  python -m examples.ex2_bessel
+METRICA PRINCIPAL: el error de grad_T en la BASE z=0, que la PINN nunca ve y que
+debe recuperar por continuacion. El error promediado en todo Omega esta dominado
+por la zona facil (cerca de la tapa) y vende de mas; el de z=0 es la recuperacion
+genuina. Se reportan ademas el perfil en z (crece hacia la base) y el perfil en t
+(control: deberia ser ~plano, la continuacion es espacial, no temporal).
+
+NOTA (sesgo optimista): el dato (g,f) es UN solo modo de Bessel -> banda limitada;
+recuperar eso es mas facil que una g real de espectro ancho. La validacion
+sintetica es optimista respecto a datos reales. Ejecutar: python -m examples.ex2_bessel
 """
 
 import os, sys
@@ -16,7 +22,9 @@ import numpy as np
 import torch
 
 from lateralcauchy import LateralCauchyCylinder, ManufacturedBessel, ReferenceSolution
-from lateralcauchy.metrics import sample_cylinder, rel_l2, error_vs_z, torchify
+from lateralcauchy.metrics import (
+    sample_cylinder, sample_disk_slice, rel_l2, error_vs_z, error_vs_t, torchify,
+)
 
 R = L = Tmax = 1.0
 RHOC, K = 1.0, 1.0
@@ -43,14 +51,24 @@ def main(m=2, n=1, **opts):
     op = LateralCauchyCylinder(R, L, Tmax, rho, c, k)
     op.fit(torchify(exact.g, op.device), torchify(exact.f, op.device), **opts)
 
+    # METRICA PRINCIPAL: error en la base z=0 (recuperacion genuina)
+    Xbase = sample_disk_slice(R, Tmax, 0.0, 3000, seed=20)
+    base_err = rel_l2(op.grad_T(torch.as_tensor(Xbase, device=op.device)),
+                      exact.grad_T(Xbase))
+    print(f"[ex2] *** grad_T en la BASE z=0 (modo {m},{n}, 1 modo): "
+          f"rel err = {base_err:.3e} ***")
+
     pred = op.grad_T(torch.as_tensor(Xc, device=op.device))
-    err = rel_l2(pred, exact.grad_T(Xc))
-    print(f"[ex2] PINN vs exacta (modo {m},{n}): grad_T rel err = {err:.3e}")
+    print(f"[ex2] (referencia) error global en Omega = {rel_l2(pred, exact.grad_T(Xc)):.3e}")
     zc, ez = error_vs_z(pred, exact.grad_T(Xc), Xc, nbins=6)
     print("[ex2] error grad_T por profundidad z (tapa z=L a la derecha):")
     for zz, ee in zip(zc, ez):
         print(f"        z={zz:.2f}  err={ee:.3e}")
-    return err
+    tc, et = error_vs_t(pred, exact.grad_T(Xc), Xc, nbins=6)
+    print("[ex2] error grad_T por tiempo t (control, deberia ser ~plano):")
+    for tt, ee in zip(tc, et):
+        print(f"        t={tt:.2f}  err={ee:.3e}")
+    return base_err
 
 
 if __name__ == "__main__":

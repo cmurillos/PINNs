@@ -77,6 +77,7 @@ que se extraen los datos de Cauchy `(g, f)` que alimentan a la PINN.
 | `examples/ex3_solver_heterogeneous.py` | PINN ↔ solver numérico, `k(z)` variable  | medio heterogéneo, **sin** solución analítica  |
 | `examples/ex4_noise.py`                | PINN con datos `(g,f)` ruidosos          | robustez al ruido (la inversión lo amplifica)  |
 | `examples/ex5_frequency_sweep.py`      | PINN sobre modos de frecuencia creciente | mapa de degradación vs `exp(L·γ)`              |
+| `examples/ex6_weight_sensitivity.py`   | barrido de `(λ_g, λ_f)`                   | sensibilidad del resultado al balance de pesos |
 
 ```bash
 python -m examples.ex1_manufactured            # sanity check
@@ -93,6 +94,25 @@ main(adam_iters=600, lbfgs_iters=200)          # defaults completos: 15000 / 300
 
 El solver de referencia es válido para medios `ρc, k` dependientes solo de `z`
 (perfiles por capas), exactamente la heterogeneidad prevista en `CLAUDE.md` §8.
+
+### Notas metodológicas (importantes para interpretar los resultados)
+
+- **Métrica principal = error en la base `z=0`.** Es la recuperación *genuina*: la
+  PINN nunca ve `z=0` (lo continúa desde la tapa). El error promediado sobre todo
+  `Ω` está dominado por la zona fácil cerca de la tapa y **vende de más**; los
+  ejemplos reportan el error en `z=0` como número principal.
+- **`error_vs_t` es un control, no un headline.** La continuación es espacial (en
+  `z`), no temporal (`CLAUDE.md` §1.6.2), así que el perfil en `t` debe salir
+  **≈plano**. Un pico en `t=0` sería efecto de borde de colocación, no la
+  inversión mal puesta.
+- **Sesgo optimista por banda limitada.** Los datos `(g,f)` sintéticos son una
+  superposición de **pocos** modos de Bessel (banda limitada); recuperar eso es
+  más fácil que una `g` real de espectro ancho. La validación sintética es
+  **optimista** respecto a datos reales — los ejemplos indican cuántos modos usan.
+- **Entrenamiento.** Adam con paso explícito (un registro de pérdida por
+  iteración) y resampleo de colocación cada `resample_every` iters (opción de
+  `fit`, 0 = off); L-BFGS con colocación **fija** y un registro por iteración
+  aceptada (nunca se resamplea en L-BFGS: rompería su aproximación del Hessiano).
 
 ## Tests y diagnóstico
 

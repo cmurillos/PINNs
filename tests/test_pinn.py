@@ -22,6 +22,21 @@ def test_error_before_fit():
         op.grad_T(torch.rand(3, 4))
 
 
+def test_history_length_matches_iterations():
+    # un registro por iteracion (no por evaluacion de closure de L-BFGS)
+    op = _op()
+    h = op.fit(ZERO, ZERO, **TINY)
+    assert len(h["total"]) == TINY["adam_iters"] + TINY["lbfgs_iters"]
+    assert all(len(h[k]) == len(h["total"]) for k in h)
+
+
+def test_resample_runs():
+    op = _op()
+    op.fit(ZERO, ZERO, adam_iters=4, lbfgs_iters=1,
+           n_int=60, n_top=30, n_lat=30, resample_every=2)
+    assert callable(op.grad_T)
+
+
 def test_outputs_after_fit():
     op = _op()
     h = op.fit(ZERO, ZERO, **TINY)
