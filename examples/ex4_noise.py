@@ -8,14 +8,13 @@ eps. Ejecutar:  python -m examples.ex4_noise
 """
 
 import os, sys
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "src"))
 
 import numpy as np
 import torch
 
-from lateral_cauchy_cylinder import LateralCauchyCylinder
-from numerics import ManufacturedBessel
-from metrics import sample_cylinder, rel_l2, torchify
+from lateralcauchy import LateralCauchyCylinder, ManufacturedBessel
+from lateralcauchy.metrics import sample_cylinder, rel_l2, torchify
 
 R = L = Tmax = 1.0
 RHOC = K = 1.0
