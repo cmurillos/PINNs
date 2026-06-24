@@ -3,7 +3,7 @@
 import numpy as np
 import torch
 
-from metrics import rel_l2, sample_cylinder, error_vs_z, torchify, to_numpy
+from lateralcauchy.metrics import rel_l2, sample_cylinder, error_vs_z, torchify, to_numpy
 
 
 def test_rel_l2_zero_and_value():
