@@ -70,6 +70,17 @@ def test_detached_by_default():
     assert not op.grad_T(torch.rand(4, 4) * 0.5).requires_grad
 
 
+def test_save_load_roundtrip(tmp_path):
+    op = _op()
+    op.fit(ZERO, ZERO, **TINY)
+    X = torch.rand(6, 4) * 0.5
+    before = op.grad_T(X)
+    path = str(tmp_path / "modelo.pt")
+    op.save(path)
+    op2 = LateralCauchyCylinder.load(path, ONE, ONE, ONE)
+    assert torch.allclose(before, op2.grad_T(X), atol=1e-12)   # mismos pesos
+
+
 def test_domain_warning_outside():
     op = _op()
     op.fit(ZERO, ZERO, **TINY)

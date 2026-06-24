@@ -1,5 +1,8 @@
 # LateralCauchyCylinder
 
+[![CI](https://github.com/cmurillos/PINNs/actions/workflows/ci.yml/badge.svg)](https://github.com/cmurillos/PINNs/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+
 Physics-Informed Neural Networks (PINNs) para el **problema de Cauchy lateral**
 de la ecuación de calor en un cilindro con medio heterogéneo:
 
@@ -120,7 +123,32 @@ El solver de referencia es válido para medios `ρc, k` dependientes solo de `z`
 pytest -q          # suite de tests (modos, solver, PINN, métricas)
 ```
 
-`lateralcauchy.diagnostics` ofrece gráficas (`plot_history`, `plot_error_vs_z`) y
-el diagnóstico **`L/δ`** (`ld_ratio`, con `δ=√(2α/ω)`) que predice *antes* de
-entrenar si el régimen es recuperable (`L/δ ≲ 1`). La integración continua
-(`.github/workflows/ci.yml`) corre la suite en cada push y pull request.
+`lateralcauchy.diagnostics` ofrece gráficas (`plot_history`, `plot_error_vs_z`,
+`plot_error_vs_t`) y el diagnóstico **`L/δ`** (`ld_ratio`, con `δ=√(2α/ω)`) que
+predice *antes* de entrenar si el régimen es recuperable (`L/δ ≲ 1`). La
+integración continua (`.github/workflows/ci.yml`) corre la suite en cada push y
+pull request.
+
+### Guardar y cargar un modelo entrenado
+
+```python
+op.fit(g, f)
+op.save("modelo.pt")
+
+# mas tarde: el medio (rho, c, k) hay que volver a pasarlo (define el operador)
+op2 = LateralCauchyCylinder.load("modelo.pt", rho, c, k)
+G = op2.grad_T(X)
+```
+
+### Benchmark reproducible
+
+`scripts/benchmark.py` entrena varias semillas y reporta el error de `grad_T` en
+la base `z=0` como `media ± std` (cifras defendibles, no una sola corrida):
+
+```bash
+python scripts/benchmark.py        # guarda figuras en scripts/figs/
+```
+
+## Licencia
+
+MIT — ver [`LICENSE`](LICENSE).
