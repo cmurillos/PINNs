@@ -1,12 +1,21 @@
-"""PINN para el problema de Cauchy lateral de la ecuacion de calor en un cilindro.
+"""Realización PINN del operador de continuación lateral
 
-Resuelve  rho c dT/dt = div(k grad T)  en un cilindro Q = D x (0,L) x (0,Tmax],
-con dato de Cauchy (g, f) en la tapa z=L y Neumann homogeneo en la pared lateral.
-Tras entrenar expone el campo gradiente espacial grad_T como objeto invocable.
+    Λ : (g, f) ↦ T,      ρc ∂ₜT = ∇·(k ∇T)   en  Q = Ω × (0, Tmax],
+                         Ω = D × (0, L),  D = disco de radio R,
 
-Realiza el operador de continuacion lateral Lambda : (g, f) -> T. Enunciado
-matematico completo y demostracion de unicidad: docs/planteamiento_pde.pdf
-(resumen en CLAUDE.md §1).
+con dato de Cauchy sobre la tapa Γ_sup = D × {L} y flujo lateral nulo:
+
+    T|_Γsup = g,   −k ∂_z T|_Γsup = f,   ∂_n T|_Γlat = 0;
+    Γ₀ = D × {0} libre;  sin condición inicial en t = 0.
+
+Tras `fit`, la instancia expone las vistas del operador entrenado
+
+    T      : X ↦ T(X)            (N,4) → (N,1)
+    grad_T : X ↦ ∇T(X)           (N,4) → (N,3)     ← objetivo práctico
+    flux   : X ↦ −k(X) ∇T(X)     (N,4) → (N,3)
+
+Planteamiento riguroso y unicidad (Proposición 1): docs/planteamiento_pde.pdf
+(resumen operativo en CLAUDE.md §1).
 """
 
 import math
@@ -19,7 +28,7 @@ torch.set_default_dtype(torch.float64)  # doble precision: importa en PINNs
 
 
 class _Net(nn.Module):
-    """MLP con normalizacion de entrada a [-1, 1] por (lb, ub)."""
+    """MLP tanh con entrada normalizada  H = 2(X − lb)/(ub − lb) − 1 ∈ [−1,1]⁴."""
 
     def __init__(self, layers, lb, ub):
         super().__init__()
@@ -52,9 +61,11 @@ def _not_fitted(*_a, **_k):
 
 
 class LateralCauchyCylinder:
-    """Operador de continuacion lateral Lambda: (g, f) -> T, para un medio
-    (rho, c, k) fijo. Tras fit expone T (= Lambda(g,f)) y sus vistas derivadas
-    grad_T y flux. Planteamiento riguroso: docs/planteamiento_pde.pdf."""
+    """Λ : (g, f) ↦ T para un medio (ρ, c, k) fijo.
+
+    La instancia ES el operador: la geometría (R, L, Tmax) y el medio van en el
+    constructor porque lo definen; el dato (g, f) entra en `fit` porque es su
+    argumento. Tras `fit`: T = Λ(g,f), grad_T = ∇T, flux = −k∇T, α = k/(ρc)."""
 
     def __init__(self, R, L, Tmax, rho, c, k, net_config=None):
         self.R, self.L, self.Tmax = float(R), float(L), float(Tmax)
@@ -111,7 +122,7 @@ class LateralCauchyCylinder:
 
     # ------------------------------------------------------------- residuo
     def _pde_residual(self, X):
-        """rho c dT/dt - div(k grad T) en forma divergencia (doble autodiff)."""
+        """r(X) = ρc ∂ₜT − ∇·(k ∇T), en forma divergencia (doble autodiff)."""
         X = X.clone().requires_grad_(True)
         T = self.net(X)
         TX = _grad(T, X)                      # [T_x, T_y, T_z, T_t]
@@ -121,6 +132,13 @@ class LateralCauchyCylinder:
 
     # ----------------------------------------------------------------- fit
     def fit(self, g, f, **opts):
+        """Entrena la red minimizando
+
+            L(θ) = λ_pde·‖r‖² + λ_g·‖T−g‖²_Γsup + λ_f·‖−k∂_zT−f‖²_Γsup
+                   + λ_lat·‖∂_nT‖²_Γlat        (medias empíricas; Γ₀ SIN término)
+
+        con g, f BLANDOS (nunca Dirichlet duro). Adam → L-BFGS. Devuelve el
+        history de pérdidas por término e instala T, grad_T y flux."""
         o = {
             "weights": (1.0, 10.0, 10.0, 1.0),  # (pde, g, f, lat)
             "adam_iters": 15000, "lbfgs_iters": 3000, "lr": 1e-3,

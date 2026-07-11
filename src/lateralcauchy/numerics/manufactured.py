@@ -2,12 +2,16 @@
 
 Dos familias, ambas con callables numpy T, grad_T, g, f sobre X (N,4):
 
-- ManufacturedZ:  T = exp(-lam t) cos(beta z + psi).  No depende de (x,y), asi
-  que NO estresa el mal condicionamiento (sanity check de §6 de CLAUDE.md).
+- ManufacturedZ:
+      T*(x,y,z,t) = e^{−λt} · cos(βz + ψ),        β = √(ρc·λ/k).
+  No depende de (x,y) ⇒ NO estresa el mal condicionamiento (sanity check,
+  CLAUDE.md §6).
 
-- ManufacturedBessel:  T = amp * phi_{m,n}(x,y) * Z(z) * exp(-lam t), con
-  Z = A cosh(gamma z) + B sinh(gamma z) y gamma^2 = mu - rho c lam / k. SI tiene
-  frecuencia espacial en (x,y): es el test que mide la inversion mal puesta.
+- ManufacturedBessel:
+      T*(x,y,z,t) = a · φ_{m,n}(x,y) · Z(z) · e^{−λt},
+      Z(z) = A cosh(γz) + B sinh(γz),      γ² = μ − ρc·λ/k.
+  SÍ tiene frecuencia espacial en (x,y): estresa la inversión mal puesta con
+  amplificación ~ e^{Lγ} de la tapa a la base.
 
 Ambas cumplen la PDE y la Neumann lateral de forma exacta.
 """

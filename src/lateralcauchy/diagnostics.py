@@ -19,12 +19,12 @@ import matplotlib.pyplot as plt
 
 
 def skin_depth(alpha, omega):
-    """Longitud de penetracion delta = sqrt(2 alpha / omega)."""
+    """δ(α, ω) = √(2α/ω)   (longitud de penetración del armónico temporal)."""
     return math.sqrt(2.0 * alpha / omega)
 
 
 def ld_ratio(alpha, omega, L):
-    """L/delta: distancia de continuacion en unidades de delta. <~1 recuperable; >>1 mal condicionado."""
+    """L/δ: distancia de continuación en unidades de δ. ≲1 recuperable; ≫1 mal condicionado."""
     return L / skin_depth(alpha, omega)
 
 
