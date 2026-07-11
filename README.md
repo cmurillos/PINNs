@@ -147,11 +147,42 @@ El solver de referencia es válido para medios `ρc, k` dependientes solo de `z`
 pytest -q          # suite de tests (modos, solver, PINN, métricas)
 ```
 
-`lateralcauchy.diagnostics` ofrece gráficas (`plot_history`, `plot_error_vs_z`,
-`plot_error_vs_t`) y el diagnóstico **`L/δ`** (`ld_ratio`, con `δ=√(2α/ω)`) que
-predice *antes* de entrenar si el régimen es recuperable (`L/δ ≲ 1`). La
-integración continua (`.github/workflows/ci.yml`) corre la suite en cada push y
-pull request.
+`lateralcauchy.diagnostics` ofrece el diagnóstico **`L/δ`** (`ld_ratio`, con
+`δ=√(2α/ω)`) que predice *antes* de entrenar si el régimen es recuperable
+(`L/δ ≲ 1`). La integración continua (`.github/workflows/ci.yml`) corre la
+suite en cada push y pull request.
+
+### Validación integrada y figuras listas para artículo
+
+Tras `fit`, la validación completa contra cualquier verdad (exacta o solver de
+referencia) es un método de la clase:
+
+```python
+rep = op.validate(exacta)        # exacta o ReferenceSolution (algo con .grad_T)
+rep["err_base"]                  # e(z=0)  ← métrica principal
+rep["err_global"], rep["z"], rep["t"]   # global y perfiles e(z), e(t)
+op.history                       # pérdidas de la última corrida
+op.plot_history("figs/history")  # figura de entrenamiento
+```
+
+`lateralcauchy.plotting` genera todas las figuras en **modo publicación**
+(serif + mathtext, tamaños de columna de revista `SINGLE_COL`/`DOUBLE_COL`,
+paleta Okabe–Ito segura para daltonismo, sin títulos embebidos) y cada `path`
+exporta **PDF vectorial** (para `\includegraphics`) **+ PNG 300 dpi**:
+
+```python
+from lateralcauchy import plotting as pl
+
+pl.plot_error_vs_z(*rep["z"], path="figs/error_z")       # firma e(z)
+pl.plot_error_vs_t(*rep["t"], path="figs/error_t")       # control (≈ plano)
+pl.plot_gradient_profile(z, dzT_pinn, dzT_ref, path="figs/perfil")
+F, ext = pl.eval_slice(lambda X: op.T(torch.as_tensor(X)).numpy(), R, L, t0=0.5)
+G, _   = pl.eval_slice(ref.T, R, L, t0=0.5)
+pl.plot_slice(F, G, ext, path="figs/corte")              # PINN | ref | |dif|
+pl.plot_frequency_sweep(gammas, errs, L, path="figs/sweep")  # vs e^{Lγ} teórico
+pl.plot_heatmap(grid, ruidos, modos, "ruido", "modo", path="figs/mapa")
+pl.latex_table(filas, header, path="figs/tabla.tex")     # booktabs, \input-able
+```
 
 ### Guardar y cargar un modelo entrenado
 
