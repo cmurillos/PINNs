@@ -3,21 +3,37 @@
 [![CI](https://github.com/cmurillos/PINNs/actions/workflows/ci.yml/badge.svg)](https://github.com/cmurillos/PINNs/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-Physics-Informed Neural Networks (PINNs) para el **problema de Cauchy lateral**
-de la ecuación de calor en un cilindro con medio heterogéneo:
+Realización numérica (PINN, PyTorch) del **operador de continuación lateral**
+para la ecuación de calor en un cilindro heterogéneo:
 
 ```
-rho(x) c(x) dT/dt = div( k(x) grad T )      en  Q = D x (0,L) x (0,Tmax]
+Λ : (g, f) ↦ T,        rho(x) c(x) ∂t T = ∇·( k(x) ∇T )   en  Ω × (0, Tmax]
 ```
 
-con dato de Cauchy `(g, f)` en la tapa `z=L` (ambos como pérdida blanda), Neumann
-homogéneo en la pared lateral, base `z=0` libre y sin condición inicial. Tras
-entrenar, la PINN expone el campo gradiente espacial `grad_T` como objeto
-invocable sobre todo el cilindro espacio-temporal.
+donde `Ω = D × (0,L)` (disco `D` de radio `R`), con los **dos datos de Cauchy**
+sobre la tapa: `T = g` y `−k ∂z T = f` en `Γ_sup = D × {L}` (ambos como pérdida
+blanda), flujo nulo `∂n T = 0` en la pared lateral, **base `z=0` libre y sin
+condición inicial**. Tras entrenar, la clase expone `T = Λ(g,f)` y sus vistas
+derivadas `grad_T` (el objetivo práctico) y `flux = −k∇T`, invocables sobre todo
+el cilindro espacio-temporal.
 
-El problema es **mal puesto exponencialmente**; eso gobierna las decisiones de
-diseño (`tanh`, doble precisión, sin Fourier features, normalización interna).
-Ver `CLAUDE.md` para el enunciado matemático y de software completo.
+El planteamiento riguroso está en
+[`docs/planteamiento_pde.pdf`](docs/planteamiento_pde.pdf):
+
+- **Unicidad (Proposición 1).** En la clase `H^{2,1}_loc((Ω ∪ Γ_sup) × (0,Tmax])`
+  hay a lo más una solución, luego `Λ` está bien definido. La prueba extiende por
+  cero a través de la tapa — **no característica**, pues el símbolo principal es
+  `k|ξ|²` — y aplica el principio de **continuación única espacial** para
+  operadores parabólicos con coeficiente principal Lipschitz (estimaciones de
+  Carleman: Saut–Scheurer 1987; Escauriaza–Fernández 2003; Escauriaza–Vessella
+  2003). Ni la condición lateral ni condición inicial alguna intervienen: la CI
+  queda determinada por el dato (Puzyrev–Shlapunov 2012).
+- **Existencia — condicional.** El conjunto de datos `(g,f)` admisibles es denso
+  pero no cerrado; no se aborda.
+- **Estabilidad — NO.** La continuación de `z=L` a `z=0` amplifica cada modo con
+  factor `~exp(L·Re√(|ξ'|² + iωρc/k))`: **mal puesto exponencialmente**. Esto
+  gobierna las decisiones de diseño (`tanh`, doble precisión, sin Fourier
+  features, normalización interna, `g` y `f` blandos).
 
 > **Alcance.** Estudio **determinista** de métodos y verificación: el operador de
 > continuación lateral parabólico realizado como software y verificado contra un
@@ -44,6 +60,7 @@ src/lateralcauchy/          paquete instalable
   metrics.py                error relativo, muestreo, error-vs-z, puente numpy<->torch
   diagnostics.py            gráficas y diagnóstico L/delta (matplotlib)
 examples/                   comparaciones PINN <-> referencia (ex1..ex6)
+docs/planteamiento_pde.pdf  planteamiento riguroso (operador, clase, unicidad)
 tests/                      suite pytest
 pyproject.toml              metadatos y dependencias del paquete
 CLAUDE.md                   especificación completa del proyecto
