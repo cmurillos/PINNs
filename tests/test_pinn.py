@@ -70,6 +70,30 @@ def test_detached_by_default():
     assert not op.grad_T(torch.rand(4, 4) * 0.5).requires_grad
 
 
+def test_history_attr_and_plot(tmp_path):
+    op = _op()
+    op.fit(ZERO, ZERO, **TINY)
+    assert hasattr(op, "history") and len(op.history["total"]) > 0
+    op.plot_history(path=str(tmp_path / "h"))
+    assert (tmp_path / "h.pdf").exists()
+
+
+def test_validate_against_truth():
+    import numpy as np
+
+    class Zero:                                  # verdad trivial de forma valida
+        def grad_T(self, X):
+            return np.zeros((len(X), 3)) + 1e-3  # evita division por cero
+
+    op = _op()
+    op.fit(ZERO, ZERO, **TINY)
+    rep = op.validate(Zero(), n=200, nbins=3)
+    assert set(rep) == {"err_base", "err_global", "z", "t"}
+    assert np.isfinite(rep["err_base"]) and np.isfinite(rep["err_global"])
+    zc, ez = rep["z"]
+    assert len(zc) == len(ez) <= 3
+
+
 def test_save_load_roundtrip(tmp_path):
     op = _op()
     op.fit(ZERO, ZERO, **TINY)
