@@ -1,11 +1,12 @@
-"""LateralCauchyCylinder: PINN para el problema de Cauchy lateral del calor en un
-cilindro, con un solver numerico de referencia para validacion.
+"""Realización PINN del operador de continuación lateral Λ : (g, f) ↦ T para la
+ecuación de calor ρc ∂ₜT = ∇·(k∇T) en un cilindro heterogéneo, con solver
+numérico de referencia para validación (docs/planteamiento_pde.pdf).
 
-Submodulos:
-  - pinn         : la clase LateralCauchyCylinder (PINN en PyTorch).
-  - numerics     : solver numerico independiente (numpy/scipy) + soluciones exactas.
-  - metrics      : metricas de comparacion y puente numpy<->torch.
-  - diagnostics  : graficas y diagnostico L/delta (import explicito; usa matplotlib).
+Submódulos:
+  - pinn         : la clase LateralCauchyCylinder (el operador Λ, PyTorch).
+  - numerics     : solver de referencia independiente (numpy/scipy) + exactas.
+  - metrics      : métricas ‖·‖ de comparación y puente numpy↔torch.
+  - diagnostics  : gráficas y diagnóstico L/δ (import explícito; matplotlib).
 """
 
 from .pinn import LateralCauchyCylinder

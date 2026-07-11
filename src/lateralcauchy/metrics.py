@@ -16,7 +16,7 @@ def to_numpy(a):
 
 
 def rel_l2(pred, true):
-    """Error relativo ||pred - true|| / ||true|| (norma de Frobenius)."""
+    """e = ‖pred − true‖ / ‖true‖   (norma de Frobenius sobre la nube)."""
     p, t = to_numpy(pred), to_numpy(true)
     return float(np.linalg.norm(p - t) / np.linalg.norm(t))
 
@@ -40,7 +40,7 @@ def sample_disk_slice(R, Tmax, z0, n, seed=0):
 
 
 def _error_vs(grad_pred, grad_true, X, col, nbins):
-    """Error relativo de grad_T por franjas de la columna `col` (2=z, 3=t)."""
+    """Perfil e(c) = ‖∇T_pred − ∇T‖/‖∇T‖ por franjas de la columna c (2=z, 3=t)."""
     p, t, c = to_numpy(grad_pred), to_numpy(grad_true), to_numpy(X)[:, col]
     edges = np.linspace(c.min(), c.max(), nbins + 1)
     cc, err = [], []
@@ -54,7 +54,7 @@ def _error_vs(grad_pred, grad_true, X, col, nbins):
 
 
 def error_vs_z(grad_pred, grad_true, X, nbins=8):
-    """Error de grad_T por coordenada z (crece al alejarse de la tapa z=L)."""
+    """z ↦ e(z): crece al alejarse de la tapa z=L (firma del mal condicionamiento)."""
     return _error_vs(grad_pred, grad_true, X, 2, nbins)
 
 

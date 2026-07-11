@@ -1,16 +1,16 @@
-"""Modos propios del disco para la condicion lateral de Neumann.
+"""Modos propios del disco para la condición lateral de Neumann.
 
-La pared lateral pide  d(phi)/dr = 0  en r = R. Las funciones propias del
-Laplaciano en el disco que la satisfacen son
+La pared lateral pide ∂_r φ = 0 en r = R. Las funciones propias del Laplaciano
+en el disco que la satisfacen son
 
-    phi_{m,n}(r, theta) = J_m(kappa r) * trig(m theta),   kappa = j'_{m,n} / R
+    φ_{m,n}(r, θ) = J_m(κ r) · trig(m θ),      κ = j'_{m,n} / R,
 
-con  J_m'(kappa R) = 0  (de ahi los ceros de la derivada de Bessel). Cumplen
-   -Laplaciano(phi) = mu phi,   mu = kappa^2.
+con J_m'(κR) = 0 (ceros de la derivada de Bessel). Cumplen
 
-Cada modo es producto separable: usar phi(x,y) por un perfil u(z,t) reduce la
-PDE 3D a un problema 1D en (z,t) (ver heat1d.py). trig = cos para 'cos', sin
-para 'sin'; m = 0 solo admite 'cos' (modo radial).
+    −Δφ = μ φ,      μ = κ².
+
+Cada modo es producto separable: φ(x,y)·u(z,t) reduce la PDE 3D a un problema
+1D en (z,t) (ver heat1d.py). trig = cos ó sin; m = 0 solo admite cos (radial).
 """
 
 import numpy as np
@@ -18,7 +18,7 @@ from scipy.special import jv, jvp, jnp_zeros
 
 
 class DiskMode:
-    """Funcion propia de Neumann del disco; evaluable en (x, y) con su gradiente."""
+    """φ_{m,n} : D → ℝ, función propia de Neumann del disco, con su gradiente."""
 
     def __init__(self, m, n, R, kind="cos"):
         if m == 0 and kind == "sin":
@@ -35,12 +35,13 @@ class DiskMode:
         return -m * np.sin(m * th) if self.kind == "cos" else m * np.cos(m * th)
 
     def value(self, x, y):
+        """(x,y) ↦ φ(x,y) = J_m(κr)·trig(mθ)."""
         r = np.hypot(x, y)
         th = np.arctan2(y, x)
         return jv(self.m, self.kappa * r) * self._trig(th)
 
     def grad(self, x, y):
-        """(phi_x, phi_y) por regla de la cadena polar -> cartesiana."""
+        """(x,y) ↦ (∂ₓφ, ∂ᵧφ) por regla de la cadena polar → cartesiana."""
         r = np.hypot(x, y)
         rs = np.where(r == 0.0, 1.0, r)           # evita 0/0; terminos se anulan
         th = np.arctan2(y, x)
