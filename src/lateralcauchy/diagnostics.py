@@ -1,21 +1,18 @@
-"""Diagnostico y graficas para la PINN del cilindro.
+"""Diagnóstico L/δ y acceso a las gráficas (compatibilidad).
 
-- ld_ratio: el numero L/delta (delta = sqrt(2 alpha / omega)) que predice, ANTES
-  de entrenar, si el regimen es recuperable. Regimen sano L/delta <~ 1; valores
-  grandes => la continuacion hacia la base amplifica demasiado (CLAUDE.md §3).
-- plot_history: curvas de perdida por termino (lo que devuelve fit).
-- plot_error_vs_z: error relativo de grad_T por coordenada z / distancia a la tapa
-  (firma del mal condicionamiento: crece al alejarse de la tapa z=L).
-- plot_error_vs_t: el mismo error por tiempo (control: deberia salir ~plano).
-
-Usa el backend 'Agg' (sin ventana): guarda a archivo o devuelve la figura.
+- skin_depth, ld_ratio: el número L/δ (δ = √(2α/ω)) predice, ANTES de entrenar,
+  si el régimen es recuperable. Régimen sano L/δ ≲ 1; valores grandes ⇒ la
+  continuación hacia la base amplifica demasiado (CLAUDE.md §3).
+- Las gráficas viven en `plotting` (estilo de artículo, PDF+PNG); aquí se
+  re-exportan plot_history / plot_error_vs_z / plot_error_vs_t por
+  compatibilidad con código existente.
 """
 
 import math
 
-import matplotlib
-matplotlib.use("Agg")
-import matplotlib.pyplot as plt
+from .plotting import (                                      # noqa: F401
+    plot_history, plot_error_vs_z, plot_error_vs_t,
+)
 
 
 def skin_depth(alpha, omega):
@@ -26,36 +23,3 @@ def skin_depth(alpha, omega):
 def ld_ratio(alpha, omega, L):
     """L/δ: distancia de continuación en unidades de δ. ≲1 recuperable; ≫1 mal condicionado."""
     return L / skin_depth(alpha, omega)
-
-
-def plot_history(history, path=None):
-    fig, ax = plt.subplots(figsize=(6, 4))
-    for key in ("total", "pde", "g", "f", "lat"):
-        ax.semilogy(history[key], label=key)
-    ax.set_xlabel("iteracion"); ax.set_ylabel("perdida")
-    ax.set_title("Historia de entrenamiento"); ax.legend()
-    fig.tight_layout()
-    if path:
-        fig.savefig(path, dpi=120)
-    return fig
-
-
-def _plot_profile(coord, err, xlabel, title, path):
-    fig, ax = plt.subplots(figsize=(6, 4))
-    ax.semilogy(coord, err, "o-")
-    ax.set_xlabel(xlabel); ax.set_ylabel("error relativo de grad_T")
-    ax.set_title(title)
-    fig.tight_layout()
-    if path:
-        fig.savefig(path, dpi=120)
-    return fig
-
-
-def plot_error_vs_z(zc, err, path=None):
-    return _plot_profile(zc, err, "z (tapa z=L a la derecha)",
-                         "Error por distancia a la tapa (mal condicionamiento)", path)
-
-
-def plot_error_vs_t(tc, err, path=None):
-    return _plot_profile(tc, err, "t",
-                         "Error por tiempo (control: deberia ser ~plano)", path)

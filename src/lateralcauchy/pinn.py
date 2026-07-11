@@ -208,7 +208,39 @@ class LateralCauchyCylinder:
             prev = cur
 
         self._install()
+        self.history = hist                      # accesible luego via op.history
         return hist
+
+    # ----------------------------------------------- validación y reporte
+    def validate(self, truth, n=3000, seed=0, nbins=6):
+        """Valida ∇T contra una verdad `truth` (objeto con grad_T: exacta
+        manufacturada o ReferenceSolution). Devuelve dict con
+
+            err_base   = e en la base z=0   ← métrica principal
+            err_global = e en todo Ω        (dominado por la zona fácil)
+            z = (zc, e(z)),  t = (tc, e(t))  perfiles para plotting.*
+
+        donde e = ‖∇T_θ − ∇T‖/‖∇T‖."""
+        from .metrics import (sample_cylinder, sample_disk_slice, rel_l2,
+                              error_vs_z, error_vs_t)
+        X = sample_cylinder(self.R, self.L, self.Tmax, n, seed=seed)
+        Xb = sample_disk_slice(self.R, self.Tmax, 0.0, n, seed=seed + 1)
+        P = self.grad_T(torch.as_tensor(X, device=self.device))
+        Pb = self.grad_T(torch.as_tensor(Xb, device=self.device))
+        Gt, Gtb = truth.grad_T(X), truth.grad_T(Xb)
+        return {
+            "err_base": rel_l2(Pb, Gtb),
+            "err_global": rel_l2(P, Gt),
+            "z": error_vs_z(P, Gt, X, nbins),
+            "t": error_vs_t(P, Gt, X, nbins),
+        }
+
+    def plot_history(self, path=None, title=None):
+        """Figura de la última corrida de fit (estilo artículo; ver plotting)."""
+        if not hasattr(self, "history"):
+            raise RuntimeError("Sin history: llama a fit antes de plot_history.")
+        from .plotting import plot_history
+        return plot_history(self.history, path=path, title=title)
 
     # --------------------------------------------------- salidas invocables
     def _prep(self, X, grad=False):
