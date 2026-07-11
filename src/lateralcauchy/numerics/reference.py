@@ -1,16 +1,18 @@
-"""Solver de referencia 3D+t por superposicion de modos del disco.
+"""Solver de referencia 3D+t por superposición de modos del disco.
 
-Resuelve el problema DIRECTO (bien puesto) y de el extrae los datos de Cauchy
-(g, f) en la tapa z=L para alimentar a la PINN. La solucion se construye como
+Resuelve el problema DIRECTO (bien puesto) y extrae de él la traza de Cauchy que
+alimenta al operador Λ de la PINN:
 
-    T(x,y,z,t) = sum_j  amp_j * phi_j(x,y) * u_j(z,t)
+    T(x,y,z,t) = Σⱼ aⱼ · φⱼ(x,y) · uⱼ(z,t),
+    (g, f)  =  ( T|_{z=L} ,  −k ∂_z T|_{z=L} ),
 
-donde phi_j es un modo de Neumann del disco (disk_modes) y u_j(z,t) resuelve el
-problema 1D reducido (heat1d). Por linealidad, cualquier superposicion de modos
-es solucion. Valido para rho c, k dependientes solo de z (medios por capas).
+donde φⱼ es un modo de Neumann del disco (−Δφ = μφ, ∂_r φ|_{r=R} = 0;
+disk_modes) y uⱼ resuelve el problema 1D reducido en (z,t) (heat1d). Por
+linealidad, toda superposición es solución. Válido para ρc, k dependientes solo
+de z (medios por capas).
 
-Expone callables numpy compatibles con el contrato de la PINN: reciben X (N,4)
-con columnas [x, y, z, t] y devuelven (N,1) o (N,3).
+Expone callables numpy con el contrato de la PINN: X (N,4) = [x,y,z,t] ↦ (N,1)
+o (N,3).
 """
 
 import numpy as np
@@ -38,11 +40,13 @@ class ReferenceSolution:
         return X[:, 0], X[:, 1], X[:, 2], X[:, 3]
 
     def T(self, X):
+        """X ↦ T(X) = Σⱼ aⱼ φⱼ(x,y) uⱼ(z,t)."""
         x, y, z, t = self._cols(X)
         out = sum(a * md.value(x, y) * h.u_at(z, t) for md, h, a in self.parts)
         return out.reshape(-1, 1)
 
     def grad_T(self, X):
+        """X ↦ ∇T(X) = Σⱼ aⱼ (∂ₓφⱼ·uⱼ, ∂ᵧφⱼ·uⱼ, φⱼ·∂_z uⱼ)."""
         x, y, z, t = self._cols(X)
         gx = gy = gz = 0.0
         for md, h, a in self.parts:
@@ -55,12 +59,14 @@ class ReferenceSolution:
         return np.stack([gx, gy, gz], axis=1)
 
     def g(self, X):
+        """Dato de Cauchy 1:  g = T|_{z=L}."""
         x, y, _, t = self._cols(X)
         zL = np.full_like(t, self.L)
         out = sum(a * md.value(x, y) * h.u_at(zL, t) for md, h, a in self.parts)
         return out.reshape(-1, 1)
 
     def f(self, X):
+        """Dato de Cauchy 2:  f = −k ∂_z T|_{z=L}."""
         x, y, _, t = self._cols(X)
         zL = np.full_like(t, self.L)
         out = sum(a * md.value(x, y) * h.uz_at(zL, t) for md, h, a in self.parts)

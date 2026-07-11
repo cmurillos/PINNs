@@ -1,10 +1,14 @@
 cff-version: 1.2.0
 message: "Si usas este software, por favor cítalo. Preprint en preparación (DOI/arXiv pendiente)."
-title: "LateralCauchyCylinder: PINN para el problema de Cauchy lateral del calor en un cilindro"
+title: "LateralCauchyCylinder: realización PINN del operador de continuación lateral Λ : (g,f) ↦ T para la ecuación de calor en un cilindro heterogéneo"
 abstract: >-
   Estudio determinista de métodos y verificación para el operador de continuación
-  lateral parabólica (sideways heat equation) en un cilindro, realizado como una
+  lateral parabólica Λ : (g,f) ↦ T (problema de Cauchy lateral para la ecuación
+  de calor en un cilindro con medio heterogéneo, k Lipschitz), realizado como una
   PINN en PyTorch y verificado contra un solver de referencia modal independiente.
+  La unicidad del operador (clase H^{2,1}_loc) se demuestra por continuación única
+  espacial con estimaciones de Carleman; el enunciado formal está en
+  docs/planteamiento_pde.pdf del repositorio.
 authors:
   - alias: cmurillos
 license: MIT

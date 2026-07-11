@@ -1,14 +1,16 @@
-"""Solver 1D en (z, t) para un modo del disco (Crank-Nicolson, forma conservativa).
+"""Solver 1D en (z, t) para un modo del disco (Crank–Nicolson, forma conservativa).
 
-Al separar T(x,y,z,t) = phi(x,y) u(z,t) con -Lap(phi)=mu phi, la PDE
-   rho c dT/dt = div(k grad T)   (con rho c, k dependientes solo de z)
-se reduce a
+Al separar T(x,y,z,t) = φ(x,y)·u(z,t) con −Δφ = μφ, la PDE
 
-   rho c(z) u_t = d/dz( k(z) u_z ) - mu k(z) u,   z in [0, L].
+    ρc ∂ₜT = ∇·(k ∇T)          (ρc, k dependientes solo de z)
 
-Se discretiza con diferencias finitas conservativas en z (k en las caras) y
-Crank-Nicolson en t, con Dirichlet en ambos extremos. La forma conservativa
-soporta k(z) heterogeneo (perfiles por capas) sin cambios.
+se reduce al problema 1D
+
+    ρc(z) ∂ₜu = ∂_z( k(z) ∂_z u ) − μ k(z) u,      z ∈ [0, L].
+
+Se discretiza con diferencias finitas conservativas en z (k evaluado en las
+caras) y Crank–Nicolson en t, con Dirichlet en ambos extremos. La forma
+conservativa soporta k(z) heterogéneo (perfiles por capas) sin cambios.
 """
 
 import numpy as np
@@ -43,7 +45,7 @@ class Heat1D:
         self._lu = lu_factor(Lhs)
 
     def solve(self, u0, bc0, bcL):
-        """u0: array(nz) inicial; bc0, bcL: callables t->valor en z=0 y z=L."""
+        """Resuelve u(z,t): u(·,0) = u0; u(0,t) = bc0(t), u(L,t) = bcL(t)."""
         nz, nt = len(self.z), len(self.t)
         U = np.zeros((nt, nz))
         U[0] = u0
