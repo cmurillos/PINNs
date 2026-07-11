@@ -4,7 +4,9 @@ Resuelve  rho c dT/dt = div(k grad T)  en un cilindro Q = D x (0,L) x (0,Tmax],
 con dato de Cauchy (g, f) en la tapa z=L y Neumann homogeneo en la pared lateral.
 Tras entrenar expone el campo gradiente espacial grad_T como objeto invocable.
 
-Ver CLAUDE.md para el enunciado matematico completo.
+Realiza el operador de continuacion lateral Lambda : (g, f) -> T. Enunciado
+matematico completo y demostracion de unicidad: docs/planteamiento_pde.pdf
+(resumen en CLAUDE.md §1).
 """
 
 import math
@@ -50,7 +52,9 @@ def _not_fitted(*_a, **_k):
 
 
 class LateralCauchyCylinder:
-    """Operador Lambda: (g, f) -> grad_T para un medio (rho, c, k) fijo."""
+    """Operador de continuacion lateral Lambda: (g, f) -> T, para un medio
+    (rho, c, k) fijo. Tras fit expone T (= Lambda(g,f)) y sus vistas derivadas
+    grad_T y flux. Planteamiento riguroso: docs/planteamiento_pde.pdf."""
 
     def __init__(self, R, L, Tmax, rho, c, k, net_config=None):
         self.R, self.L, self.Tmax = float(R), float(L), float(Tmax)
