@@ -7,11 +7,16 @@
 
 ## 0. Resumen en una frase
 
-Implementar una clase `LateralCauchyCylinder` que resuelve, mediante una PINN
-(PyTorch), el **problema de Cauchy lateral** para la ecuación de calor en un
-cilindro con medio heterogéneo, y que tras entrenar expone el campo
-**gradiente espacial** `∇T` como un objeto invocable sobre el cilindro
-espacio-temporal.
+Implementar una clase `LateralCauchyCylinder` que realiza, mediante una PINN
+(PyTorch), el **operador de continuación lateral** `Λ : (g,f) ↦ T` para la
+ecuación de calor en un cilindro con medio heterogéneo, y que tras entrenar
+expone `T` y el campo **gradiente espacial** `∇T` (objetivo práctico) como
+objetos invocables sobre el cilindro espacio-temporal.
+
+**Planteamiento riguroso:** `docs/planteamiento_pde.pdf` — dominio, clase de
+soluciones `H^{2,1}_loc`, demostración de unicidad (Proposición 1, vía
+continuación única espacial con estimaciones de Carleman) y referencias. Este
+documento es la fuente de verdad matemática; §1 de aquí es su resumen operativo.
 
 **Alcance:** proyecto determinista (coeficientes dados, no aleatorios) de métodos
 y verificación. No es un trabajo de aplicación geofísica ni de cuantificación de
@@ -71,35 +76,61 @@ La suavidad de `k` **no es opcional**: ver §4.3 (forma divergencia).
   `n = (x/R, y/R, 0)`, de modo que `∂_n T = (x/R)∂_x T + (y/R)∂_y T`.
 - La base es libre y NO hay condición inicial: ver §1.6.
 
-### 1.5 Objetivo
+### 1.5 El operador de continuación lateral
 
-Recuperar el **campo gradiente espacial**:
+El problema es: dado el par admisible `(g, f)`, hallar `T` que satisfaga la PDE
+con las condiciones de §1.4. Ello define el **operador de continuación lateral**
 
 ```
-∇T : Ω × (0, Tmax] → ℝ³,   (x,y,z,t) ↦ (∂_x T, ∂_y T, ∂_z T)
+Λ : (g, f) ↦ T
+```
+
+(ec. (8) del planteamiento, `docs/planteamiento_pde.pdf`). El **objetivo práctico**
+de la clase es el campo gradiente espacial derivado de él:
+
+```
+∇T = ∇(Λ(g,f)) : Ω × (0, Tmax] → ℝ³,   (x,y,z,t) ↦ (∂_x T, ∂_y T, ∂_z T)
 ```
 
 en TODO el cilindro espacio-temporal (no solo en la base `z=0`).
 
 - `∇T` es el gradiente **espacial**. NO incluye `∂_t T`.
 - Todo depende de `t`: la entrada siempre es `(x, y, z, t)`.
-
-Define un operador `Λ : g ↦ ∇T` (con `f` ligado o como segundo dato).
+- En el planteamiento el tiempo final se denota `T`; en el código es `Tmax`
+  (para no colisionar con la temperatura `T`).
 
 ### 1.6 Estatus matemático del problema (3 hechos)
 
-1. **Existencia — condicional.** No todo par `(g, f)` es admisible; solo los que
-   provienen de la traza de Cauchy de una solución real de la PDE. El dominio de
-   `Λ` es un subespacio denso **no cerrado**.
+El enunciado riguroso completo, con la demostración de unicidad, está en
+`docs/planteamiento_pde.pdf`. Resumen:
 
-2. **Unicidad — SÍ.** La tapa `z = L` es **no característica** para el operador
-   del calor (las superficies características son `t = cte`). Por **continuación
-   única parabólica**, dos soluciones con el mismo dato de Cauchy en `Γ_sup`
-   (y `∂_n = 0` en `Γ_lat`) coinciden en todo `Q` conexo. Por tanto `∇T` queda
-   unívocamente determinado por el dato. **No interviene condición inicial**: la
-   continuación es espacial (en `z`, desde la tapa hacia abajo), no hacia atrás
-   en el tiempo. La CI no es un grado de libertad — queda fijada por el dato.
-   Imponerla sobredeterminaría el problema.
+1. **Existencia — condicional.** No todo par `(g, f)` es admisible; solo los que
+   provienen de la traza de Cauchy de una solución real de la PDE. El conjunto de
+   datos admisibles es denso pero **no cerrado**; la existencia no se aborda.
+
+2. **Unicidad — SÍ (Proposición 1 del planteamiento).** Se trabaja en la clase
+   `T ∈ H^{2,1}_loc((Ω ∪ Γ_sup) × (0,Tmax])`, de modo que las trazas `T|_{z=L}` y
+   `∂_z T|_{z=L}` están bien definidas. El sistema admite **a lo más una** solución
+   en esa clase, luego `Λ` está bien definido sobre los datos admisibles.
+   Esquema de la prueba (todo demostrado salvo el lema citado):
+   - *Tapa no característica:* el símbolo principal de `P u = ρc ∂ₜu − ∇·(k∇u)` es
+     `p = k|ξ|²`; sobre la conormal de `Γ_sup` vale `k ≥ k₀ > 0`. Las superficies
+     características son exactamente los niveles `t = cte` — por eso el dato de
+     Cauchy es admisible en la tapa y NO lo sería en `{t = 0}`.
+   - *Extensión por cero:* la diferencia `w = T₁ − T₂` (dato de Cauchy nulo) se
+     extiende por cero a un collar `D × (L, L+ε)`; el pegado en `H¹` y la fórmula
+     de Green muestran que `w̃` es solución débil a través de la tapa (los
+     coeficientes se extienden con McShane + truncación, preservando Lipschitz).
+   - *Continuación única espacial (Lema 1, citado):* estimaciones de Carleman
+     para operadores parabólicos con coeficiente principal Lipschitz
+     [Saut–Scheurer; Escauriaza–Fernández; Escauriaza–Vessella] propagan
+     `w̃ ≡ 0` del collar a todo el dominio conexo: `T₁ = T₂`.
+   - **Ni la condición lateral (7) ni condición inicial alguna intervienen en la
+     demostración**: la continuación es espacial en `z`, desde la tapa, y la CI
+     queda determinada por el dato [Puzyrev–Shlapunov]. Imponer una CI
+     sobredeterminaría el problema.
+   Esta es la razón por la que la regularidad `k ∈ C^{0,1}` de §1.2 es el umbral
+   teórico: es la hipótesis del lema de continuación única.
 
 3. **Estabilidad — NO.** `Λ` es lineal, **cerrado, densamente definido y no
    acotado**. Sobre un modo de Fourier `(ξ', ω)` en `(x, y, t)`, la continuación
@@ -107,6 +138,18 @@ Define un operador `Λ : g ↦ ∇T` (con `f` ligado o como segundo dato).
    `~ exp( L · Re√(|ξ'|² + i ω ρc/k) )`,
    que crece sin cota en alta frecuencia. **Mal puesto exponencialmente.**
    Esto gobierna TODAS las decisiones de diseño (ver §3).
+
+**Referencias del planteamiento**
+
+1. J.-C. Saut, B. Scheurer, *Unique continuation for some evolution equations*,
+   J. Differential Equations 66 (1987), 118–139.
+2. L. Escauriaza, F. J. Fernández, *Unique continuation for parabolic operators*,
+   Ark. Mat. 41 (2003), 35–60.
+3. L. Escauriaza, S. Vessella, *Optimal three cylinder inequalities for solutions
+   to parabolic equations with Lipschitz leading coefficients*, Contemp. Math. 333,
+   AMS (2003), 79–87.
+4. R. E. Puzyrev, A. A. Shlapunov, *On an ill-posed problem for the heat equation*,
+   J. Siberian Federal Univ. Math. Phys. 5 (2012), no. 3, 337–348.
 
 ---
 
