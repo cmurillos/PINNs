@@ -15,11 +15,8 @@ sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(
 import numpy as np
 import torch
 
-import matplotlib
-matplotlib.use("Agg")
-import matplotlib.pyplot as plt
-
 from lateralcauchy import LateralCauchyCylinder, ManufacturedBessel
+from lateralcauchy import plotting as pl
 from lateralcauchy.metrics import sample_disk_slice, rel_l2, torchify
 
 R = L = Tmax = 1.0
@@ -61,24 +58,17 @@ def main(modes=((1, 1), (2, 1), (3, 1)), noises=(0.0, 0.02, 0.05),
                   f"err(z=0)={err:.3e}")
 
     if savefig:
-        os.makedirs(FIGDIR, exist_ok=True)
-        fig, ax = plt.subplots(figsize=(6, 4))
-        im = ax.imshow(grid, aspect="auto", origin="lower", cmap="viridis")
-        ax.set_xticks(range(len(noises)))
-        ax.set_xticklabels([f"{e:.0%}" for e in noises])
-        ax.set_yticks(range(len(modes)))
-        ax.set_yticklabels([f"({m},{n}) γ={g:.1f}" for (m, n), g in zip(modes, gammas)])
-        ax.set_xlabel("nivel de ruido en (g, f)")
-        ax.set_ylabel("modo (frecuencia espacial)")
-        ax.set_title("Error de grad_T en z=0  (ruido × distancia de continuación)")
-        fig.colorbar(im, ax=ax, label="error relativo")
-        for i in range(len(modes)):
-            for j in range(len(noises)):
-                ax.text(j, i, f"{grid[i, j]:.2f}", ha="center", va="center",
-                        color="w", fontsize=8)
-        fig.tight_layout()
-        fig.savefig(os.path.join(FIGDIR, "noise_ld_map.png"), dpi=120)
-        print(f"[map] figura en {FIGDIR}/noise_ld_map.png")
+        pl.plot_heatmap(
+            grid,
+            xlabels=[f"{e:.0%}" for e in noises],
+            ylabels=[fr"$({m},{n})$ $\gamma$={g:.1f}"
+                     for (m, n), g in zip(modes, gammas)],
+            xlabel="nivel de ruido en $(g, f)$",
+            ylabel="modo (frecuencia espacial)",
+            cbar_label=r"$e(z{=}0)$",
+            path=os.path.join(FIGDIR, "noise_ld_map"),
+        )
+        print(f"[map] figura (pdf+png) en {FIGDIR}/noise_ld_map")
     return grid
 
 
