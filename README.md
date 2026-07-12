@@ -61,10 +61,26 @@ src/lateralcauchy/          paquete instalable
   diagnostics.py            gráficas y diagnóstico L/delta (matplotlib)
 examples/                   comparaciones PINN <-> referencia (ex1..ex6)
 docs/planteamiento_pde.pdf  planteamiento riguroso (operador, clase, unicidad)
+docs/articulo_borrador.pdf  borrador del artículo (ecuaciones citadas por los experimentos)
+docs/SIMULACIONES.md        especificación operativa de los experimentos del artículo
 tests/                      suite pytest
 pyproject.toml              metadatos y dependencias del paquete
-CLAUDE.md                   especificación completa del proyecto
+CLAUDE.md                   especificación completa del proyecto (clase PINN)
+AGENTS.md                   traspaso: precedencia de documentos, orden y contrato de calidad
 ```
+
+## Experimentos del artículo
+
+Los experimentos que producen los números y figuras del artículo (`ex1`–`ex6` y
+la visualización espacio-temporal) están especificados en
+[`docs/SIMULACIONES.md`](docs/SIMULACIONES.md), que acompaña al borrador
+[`docs/articulo_borrador.pdf`](docs/articulo_borrador.pdf). **Cuando el nivel de
+detalle difiera entre ambos, manda `SIMULACIONES.md`** (fija discretizaciones,
+semillas, tolerancias y nombres de archivo que el PDF solo esboza). El orden de
+implementación y el contrato de calidad del código están en
+[`AGENTS.md`](AGENTS.md); en resumen: primero la infraestructura de diagnóstico
+(§1 del MD) con sus dos tests unitarios — la curva de atenuación `a(ω)` es el
+eje del resultado central — y después los runners en orden `ex1 → … → ex6`.
 
 ## Uso
 
