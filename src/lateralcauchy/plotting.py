@@ -9,7 +9,6 @@ pasando `path` (sin extensión o con ella).
     plot_error_vs_z(zc, ez, path="figs/error_z")
     plot_gradient_profile(z, dzT_pinn, dzT_ref, path="figs/perfil")
     plot_slice(F_pinn, F_ref, extent, path="figs/corte")
-    plot_frequency_sweep(gammas, errs, L, path="figs/sweep")
     plot_heatmap(grid, cols, filas, ..., path="figs/mapa")
     latex_table(rows, header, path="tabla.tex")     # booktabs, \input-able
 
@@ -160,23 +159,6 @@ def plot_slice(F_pred, F_true, extent, path=None, title=None,
         if path:
             save_fig(fig, path)
         return fig
-
-
-def plot_frequency_sweep(gammas, errs, L, path=None, title=None):
-    """Error en z=0 vs Lγ, con la recta de referencia ∝ e^{Lγ} (teoría)."""
-    g = np.asarray(gammas, float)
-    e = np.asarray(errs, float)
-    with paper_style():
-        fig, ax = plt.subplots(figsize=(SINGLE_COL, 2.55))
-        x = L * g
-        ax.semilogy(x, e, "o-", color=BLUE, label="medido")
-        ref = e[0] * np.exp(x - x[0])              # pendiente teórica e^{Lγ}
-        ax.semilogy(x, ref, "--", color=INK, alpha=0.6,
-                    label=r"$\propto e^{L\gamma}$")
-        ax.set_xlabel(r"$L\gamma$")
-        ax.set_ylabel(r"error de $\nabla T$ en $z=0$")
-        ax.legend()
-        return _finish(fig, ax, title, path)
 
 
 def plot_heatmap(grid, xlabels, ylabels, xlabel, ylabel, path=None, title=None,

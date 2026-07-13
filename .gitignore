@@ -10,3 +10,7 @@ scripts/figs/
 
 # PDFs no distribuidos en el repo publico (borrador articulo, planteamiento)
 docs/*.pdf
+
+# salidas de experimentos (contrato §0.4 del spec)
+results/
+figs/
