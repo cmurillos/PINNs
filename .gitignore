@@ -7,3 +7,6 @@ dist/
 
 # figuras generadas
 scripts/figs/
+
+# PDFs no distribuidos en el repo publico (borrador articulo, planteamiento)
+docs/*.pdf

@@ -14,8 +14,8 @@ Tras `fit`, la instancia expone las vistas del operador entrenado
     grad_T : X ↦ ∇T(X)           (N,4) → (N,3)     ← objetivo práctico
     flux   : X ↦ −k(X) ∇T(X)     (N,4) → (N,3)
 
-Planteamiento riguroso y unicidad (Proposición 1): docs/planteamiento_pde.pdf
-(resumen operativo en CLAUDE.md §1).
+Planteamiento riguroso y unicidad (Proposición 1): artículo asociado (no
+distribuido en este repositorio); resumen operativo autocontenido en CLAUDE.md §1.
 """
 
 import math

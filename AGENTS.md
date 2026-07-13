@@ -13,16 +13,22 @@
 | Documento                        | Rol                                                        |
 |----------------------------------|------------------------------------------------------------|
 | `docs/SIMULACIONES.md`           | **Especificación operativa de los experimentos.** Manda.   |
-| `docs/articulo_borrador.pdf`     | Borrador del artículo: contexto, ecuaciones citadas ((3.4), (3.8), (3.9), (4.10)), recuadros de experimentos. |
+| Borrador del artículo (externo)  | Contexto y ecuaciones citadas ((3.4), (3.8), (3.9), (4.10)), recuadros de experimentos. **No distribuido en este repositorio público** (pedirlo al autor). |
 | `CLAUDE.md`                      | Especificación de la clase PINN y del proyecto base (ya implementado). |
-| `docs/planteamiento_pde.pdf`     | Planteamiento matemático riguroso (unicidad, mal condicionamiento). |
+| Planteamiento riguroso (externo) | Planteamiento matemático (unicidad, mal condicionamiento). No distribuido en el repo; resumen autocontenido en `CLAUDE.md` §1. |
 
 **Regla de precedencia (explícita, no negociable):** cuando un recuadro o
-descripción de experimento del PDF difiera en nivel de detalle de
+descripción de experimento del artículo difiera en nivel de detalle de
 `docs/SIMULACIONES.md`, **manda SIMULACIONES.md**. El MD es más específico a
 propósito: fija discretizaciones, semillas, tolerancias, nombres de archivo y
-protocolos que el PDF solo esboza. El PDF se usa para entender el *porqué*
-(las ecuaciones citadas) — nunca para contradecir el *cómo* del MD.
+protocolos que el artículo solo esboza. El artículo se usa para entender el
+*porqué* (las ecuaciones citadas) — nunca para contradecir el *cómo* del MD.
+
+> **Nota sobre los PDFs.** El borrador del artículo y el planteamiento riguroso
+> **no se versionan en este repositorio público**. Las ecuaciones que
+> `SIMULACIONES.md` cita por número (`(3.4)`, `(4.10)`, …) están en el borrador
+> del artículo: consíguelo del autor antes de implementar la infraestructura §1
+> si necesitas el enunciado exacto de esas ecuaciones.
 
 **No modificar la lógica central de la PINN ni del solver de referencia**
 (`src/lateralcauchy/pinn.py`, `src/lateralcauchy/numerics/`). Todo el trabajo

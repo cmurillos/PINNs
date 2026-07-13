@@ -7,8 +7,8 @@ abstract: >-
   de calor en un cilindro con medio heterogéneo, k Lipschitz), realizado como una
   PINN en PyTorch y verificado contra un solver de referencia modal independiente.
   La unicidad del operador (clase H^{2,1}_loc) se demuestra por continuación única
-  espacial con estimaciones de Carleman; el enunciado formal está en
-  docs/planteamiento_pde.pdf del repositorio.
+  espacial con estimaciones de Carleman; el enunciado formal se desarrolla en el
+  artículo asociado (preprint en preparación) y se resume en CLAUDE.md del repositorio.
 authors:
   - alias: cmurillos
 license: MIT

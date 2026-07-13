@@ -1,6 +1,6 @@
 """Realización PINN del operador de continuación lateral Λ : (g, f) ↦ T para la
 ecuación de calor ρc ∂ₜT = ∇·(k∇T) en un cilindro heterogéneo, con solver
-numérico de referencia para validación (docs/planteamiento_pde.pdf).
+numérico de referencia para validación. Planteamiento y unicidad: CLAUDE.md §1.
 
 Submódulos:
   - pinn         : la clase LateralCauchyCylinder (el operador Λ, PyTorch).

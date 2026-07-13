@@ -1,6 +1,8 @@
 # SIMULACIONES.md — Especificación de experimentos del artículo
 
-> Documento para Codex. Acompaña al borrador `articulo_borrador.pdf` y al repositorio
+> Documento para Codex. Acompaña al borrador del artículo (externo, no versionado
+> en este repositorio público; pedirlo al autor para el enunciado exacto de las
+> ecuaciones citadas) y al repositorio
 > `cmurillos/PINNs` (paquete `lateralcauchy`). Define la infraestructura, las
 > convenciones globales y la especificación de cada experimento (`ex1`–`ex6` y la
 > visualización). Los números de ecuación citados ((3.4), (4.10), (3.8), etc.)

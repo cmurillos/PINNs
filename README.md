@@ -17,8 +17,9 @@ condición inicial**. Tras entrenar, la clase expone `T = Λ(g,f)` y sus vistas
 derivadas `grad_T` (el objetivo práctico) y `flux = −k∇T`, invocables sobre todo
 el cilindro espacio-temporal.
 
-El planteamiento riguroso está en
-[`docs/planteamiento_pde.pdf`](docs/planteamiento_pde.pdf):
+El planteamiento riguroso se desarrolla en el artículo asociado (no distribuido
+en este repositorio público); su resumen operativo autocontenido está en
+[`CLAUDE.md`](CLAUDE.md):
 
 - **Unicidad (Proposición 1).** En la clase `H^{2,1}_loc((Ω ∪ Γ_sup) × (0,Tmax])`
   hay a lo más una solución, luego `Λ` está bien definido. La prueba extiende por
@@ -60,8 +61,6 @@ src/lateralcauchy/          paquete instalable
   metrics.py                error relativo, muestreo, error-vs-z, puente numpy<->torch
   diagnostics.py            gráficas y diagnóstico L/delta (matplotlib)
 examples/                   comparaciones PINN <-> referencia (ex1..ex6)
-docs/planteamiento_pde.pdf  planteamiento riguroso (operador, clase, unicidad)
-docs/articulo_borrador.pdf  borrador del artículo (ecuaciones citadas por los experimentos)
 docs/SIMULACIONES.md        especificación operativa de los experimentos del artículo
 tests/                      suite pytest
 pyproject.toml              metadatos y dependencias del paquete
@@ -73,8 +72,8 @@ AGENTS.md                   traspaso: precedencia de documentos, orden y contrat
 
 Los experimentos que producen los números y figuras del artículo (`ex1`–`ex6` y
 la visualización espacio-temporal) están especificados en
-[`docs/SIMULACIONES.md`](docs/SIMULACIONES.md), que acompaña al borrador
-[`docs/articulo_borrador.pdf`](docs/articulo_borrador.pdf). **Cuando el nivel de
+[`docs/SIMULACIONES.md`](docs/SIMULACIONES.md), que acompaña al borrador del
+artículo (no distribuido en este repositorio público). **Cuando el nivel de
 detalle difiera entre ambos, manda `SIMULACIONES.md`** (fija discretizaciones,
 semillas, tolerancias y nombres de archivo que el PDF solo esboza). El orden de
 implementación y el contrato de calidad del código están en

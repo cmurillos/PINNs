@@ -13,10 +13,11 @@ ecuación de calor en un cilindro con medio heterogéneo, y que tras entrenar
 expone `T` y el campo **gradiente espacial** `∇T` (objetivo práctico) como
 objetos invocables sobre el cilindro espacio-temporal.
 
-**Planteamiento riguroso:** `docs/planteamiento_pde.pdf` — dominio, clase de
-soluciones `H^{2,1}_loc`, demostración de unicidad (Proposición 1, vía
-continuación única espacial con estimaciones de Carleman) y referencias. Este
-documento es la fuente de verdad matemática; §1 de aquí es su resumen operativo.
+**Planteamiento riguroso:** artículo asociado (no distribuido en este
+repositorio público) — dominio, clase de soluciones `H^{2,1}_loc`, demostración
+de unicidad (Proposición 1, vía continuación única espacial con estimaciones de
+Carleman) y referencias. Ese documento es la fuente de verdad matemática; §1 de
+aquí es su resumen operativo autocontenido.
 
 **Alcance:** proyecto determinista (coeficientes dados, no aleatorios) de métodos
 y verificación. No es un trabajo de aplicación geofísica ni de cuantificación de
@@ -85,7 +86,7 @@ con las condiciones de §1.4. Ello define el **operador de continuación lateral
 Λ : (g, f) ↦ T
 ```
 
-(ec. (8) del planteamiento, `docs/planteamiento_pde.pdf`). El **objetivo práctico**
+(ec. (8) del planteamiento, en el artículo asociado). El **objetivo práctico**
 de la clase es el campo gradiente espacial derivado de él:
 
 ```
@@ -101,8 +102,8 @@ en TODO el cilindro espacio-temporal (no solo en la base `z=0`).
 
 ### 1.6 Estatus matemático del problema (3 hechos)
 
-El enunciado riguroso completo, con la demostración de unicidad, está en
-`docs/planteamiento_pde.pdf`. Resumen:
+El enunciado riguroso completo, con la demostración de unicidad, está en el
+artículo asociado (no distribuido en el repositorio). Resumen:
 
 1. **Existencia — condicional.** No todo par `(g, f)` es admisible; solo los que
    provienen de la traza de Cauchy de una solución real de la PDE. El conjunto de
