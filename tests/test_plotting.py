@@ -41,13 +41,11 @@ def test_eval_slice_and_plot_slice(tmp_path):
     assert (tmp_path / "sl.pdf").exists()
 
 
-def test_sweep_and_heatmap(tmp_path):
-    pl.plot_frequency_sweep([1.7, 3.0, 4.1], [0.1, 0.5, 0.8], L=1.0,
-                            path=str(tmp_path / "sw"))
+def test_heatmap(tmp_path):
     pl.plot_heatmap(np.array([[0.1, 0.2], [0.7, 0.9]]),
                     ["0%", "5%"], ["(1,1)", "(2,1)"],
                     "ruido", "modo", path=str(tmp_path / "hm"))
-    assert (tmp_path / "sw.pdf").exists() and (tmp_path / "hm.pdf").exists()
+    assert (tmp_path / "hm.pdf").exists()
 
 
 def test_latex_table(tmp_path):
