@@ -1,0 +1,2 @@
+capas,ancho,N_int,N_sup,N_lat,lambda_pde,lambda_g,lambda_f,lambda_lat,iter_adam,iter_lbfgs,lr_adam
+4,96,8000,3000,2000,1.0,10.0,10.0,1.0,15000,3000,0.001
