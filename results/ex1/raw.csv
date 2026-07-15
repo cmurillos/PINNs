@@ -1,2 +1,3 @@
 experimento,caso,semilla_red,semilla_ruido,eta,a,omega,L,E0,err_global,tiempo_s
 ex1,manufacturada,0,,,,,1.0,0.009744811632144476,0.0031859099764489146,3421.11
+ex1,manufacturada,1,,,,,1.0,0.011275228705230539,0.005134622705616221,3344.35
